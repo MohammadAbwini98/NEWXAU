@@ -1,0 +1,201 @@
+{
+  "id": 1,
+  "run_id": "WF-20260609-161504-001",
+  "run_type": "WALK_FORWARD",
+  "name": "dashboard_walk_forward",
+  "instrument": "XAUUSD",
+  "timeframe": "5m",
+  "started_at": "2026-06-09T16:15:09.654341+00:00",
+  "completed_at": "2026-06-09T16:15:09.654341+00:00",
+  "status": "COMPLETED",
+  "config": {
+    "train_size": 40,
+    "test_size": 20,
+    "step_size": 20,
+    "min_window": 30,
+    "instrument": "XAUUSD",
+    "timeframe": "5m",
+    "mode": "strategy_only",
+    "model_mode": "MOCK_FOR_TEST_ONLY",
+    "validation_size": 80,
+    "model_list": null,
+    "feature_config": null,
+    "threshold_config": {
+      "profile": "default"
+    },
+    "output_artifact_path": null,
+    "metrics_output_path": null
+  },
+  "summary": {
+    "windows": 2,
+    "total_signals": 1,
+    "recommended_signals": 1,
+    "blocked_signals": 0,
+    "win_rate": 0.5,
+    "profit_factor": 0.0,
+    "max_drawdown": 0.0,
+    "average_rr": 0.0,
+    "number_of_trades": 1,
+    "buy_precision": 0.0,
+    "sell_precision": 0.0,
+    "model_mode": "MOCK_FOR_TEST_ONLY",
+    "model_by_model": {
+      "kronos": {
+        "model_win_rate": 0.5,
+        "buy_precision": 0.0,
+        "sell_precision": 0.5,
+        "hold_accuracy": 0.0,
+        "win_rate": 0.5,
+        "average_confidence": 0.533253,
+        "confidence_calibration": {
+          "0.50-0.60": {
+            "wins": 1,
+            "predictions": 2,
+            "actual_win_rate": 0.5
+          }
+        },
+        "profit_factor": 2.5,
+        "profit_factor_contribution": 2.5,
+        "false_signal_rate": 0.5,
+        "average_return": 1.25,
+        "average_pnl_points": 1.25,
+        "max_drawdown_contribution": 0.0,
+        "drift_score": 0.466747,
+        "observations": 2,
+        "number_of_predictions": 2,
+        "number_of_recommended_predictions": 2,
+        "source": "mixed"
+      },
+      "tcn": {
+        "model_win_rate": 0.5,
+        "buy_precision": 0.0,
+        "sell_precision": 0.5,
+        "hold_accuracy": 0.0,
+        "win_rate": 0.5,
+        "average_confidence": 0.525072,
+        "confidence_calibration": {
+          "0.50-0.60": {
+            "wins": 1,
+            "predictions": 2,
+            "actual_win_rate": 0.5
+          }
+        },
+        "profit_factor": 2.5,
+        "profit_factor_contribution": 2.5,
+        "false_signal_rate": 0.5,
+        "average_return": 1.25,
+        "average_pnl_points": 1.25,
+        "max_drawdown_contribution": 0.0,
+        "drift_score": 0.474928,
+        "observations": 2,
+        "number_of_predictions": 2,
+        "number_of_recommended_predictions": 2,
+        "source": "mixed"
+      },
+      "lightgbm": {
+        "model_win_rate": 0.5,
+        "buy_precision": 0.0,
+        "sell_precision": 0.5,
+        "hold_accuracy": 0.0,
+        "win_rate": 0.5,
+        "average_confidence": 0.513682,
+        "confidence_calibration": {
+          "0.50-0.60": {
+            "wins": 1,
+            "predictions": 2,
+            "actual_win_rate": 0.5
+          }
+        },
+        "profit_factor": 2.5,
+        "profit_factor_contribution": 2.5,
+        "false_signal_rate": 0.5,
+        "average_return": 1.25,
+        "average_pnl_points": 1.25,
+        "max_drawdown_contribution": 0.0,
+        "drift_score": 0.486318,
+        "observations": 2,
+        "number_of_predictions": 2,
+        "number_of_recommended_predictions": 2,
+        "source": "mixed"
+      },
+      "patchtst": {
+        "model_win_rate": 0.5,
+        "buy_precision": 0.0,
+        "sell_precision": 0.5,
+        "hold_accuracy": 0.0,
+        "win_rate": 0.5,
+        "average_confidence": 0.523871,
+        "confidence_calibration": {
+          "0.50-0.60": {
+            "wins": 1,
+            "predictions": 2,
+            "actual_win_rate": 0.5
+          }
+        },
+        "profit_factor": 2.5,
+        "profit_factor_contribution": 2.5,
+        "false_signal_rate": 0.5,
+        "average_return": 1.25,
+        "average_pnl_points": 1.25,
+        "max_drawdown_contribution": 0.0,
+        "drift_score": 0.476129,
+        "observations": 2,
+        "number_of_predictions": 2,
+        "number_of_recommended_predictions": 2,
+        "source": "mixed"
+      },
+      "cnn_lstm": {
+        "model_win_rate": 0.5,
+        "buy_precision": 0.0,
+        "sell_precision": 0.5,
+        "hold_accuracy": 0.0,
+        "win_rate": 0.5,
+        "average_confidence": 0.520982,
+        "confidence_calibration": {
+          "0.50-0.60": {
+            "wins": 1,
+            "predictions": 2,
+            "actual_win_rate": 0.5
+          }
+        },
+        "profit_factor": 2.5,
+        "profit_factor_contribution": 2.5,
+        "false_signal_rate": 0.5,
+        "average_return": 1.25,
+        "average_pnl_points": 1.25,
+        "max_drawdown_contribution": 0.0,
+        "drift_score": 0.479018,
+        "observations": 2,
+        "number_of_predictions": 2,
+        "number_of_recommended_predictions": 2,
+        "source": "mixed"
+      },
+      "nhits": {
+        "model_win_rate": 0.5,
+        "buy_precision": 0.0,
+        "sell_precision": 0.5,
+        "hold_accuracy": 0.0,
+        "win_rate": 0.5,
+        "average_confidence": 0.503279,
+        "confidence_calibration": {
+          "0.50-0.60": {
+            "wins": 1,
+            "predictions": 2,
+            "actual_win_rate": 0.5
+          }
+        },
+        "profit_factor": 2.5,
+        "profit_factor_contribution": 2.5,
+        "false_signal_rate": 0.5,
+        "average_return": 1.25,
+        "average_pnl_points": 1.25,
+        "max_drawdown_contribution": 0.0,
+        "drift_score": 0.496721,
+        "observations": 2,
+        "number_of_predictions": 2,
+        "number_of_recommended_predictions": 2,
+        "source": "mixed"
+      }
+    }
+  }
+}

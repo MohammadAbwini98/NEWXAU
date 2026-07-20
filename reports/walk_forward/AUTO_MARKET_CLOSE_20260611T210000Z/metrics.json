@@ -1,0 +1,363 @@
+{
+  "summary": {
+    "windows": 3,
+    "total_signals": 253,
+    "recommended_signals": 253,
+    "blocked_signals": 0,
+    "win_rate": 0.5318,
+    "profit_factor": 3.2394,
+    "max_drawdown": 83.0,
+    "average_rr": 0.3933,
+    "number_of_trades": 253,
+    "buy_precision": 0.0,
+    "sell_precision": 0.0,
+    "model_mode": "MOCK_FOR_TEST_ONLY",
+    "model_by_model": {
+      "kronos": {
+        "model_win_rate": 0.432343,
+        "buy_precision": 0.362069,
+        "sell_precision": 0.527132,
+        "hold_accuracy": 0.0,
+        "win_rate": 0.432343,
+        "average_confidence": 0.49611,
+        "confidence_calibration": {
+          "0.50-0.60": {
+            "wins": 113,
+            "predictions": 285,
+            "actual_win_rate": 0.396491
+          },
+          "0.60-0.70": {
+            "wins": 18,
+            "predictions": 18,
+            "actual_win_rate": 1.0
+          }
+        },
+        "profit_factor": 1.660706,
+        "profit_factor_contribution": 1.660706,
+        "false_signal_rate": 0.567657,
+        "average_return": 0.31399901,
+        "average_pnl_points": 0.31399901,
+        "max_drawdown_contribution": 0.0,
+        "drift_score": 0.50389,
+        "observations": 303,
+        "number_of_predictions": 303,
+        "number_of_recommended_predictions": 303,
+        "source": "mixed"
+      },
+      "tcn": {
+        "model_win_rate": 0.432343,
+        "buy_precision": 0.362069,
+        "sell_precision": 0.527132,
+        "hold_accuracy": 0.0,
+        "win_rate": 0.432343,
+        "average_confidence": 0.486176,
+        "confidence_calibration": {
+          "0.50-0.60": {
+            "wins": 113,
+            "predictions": 285,
+            "actual_win_rate": 0.396491
+          },
+          "0.60-0.70": {
+            "wins": 18,
+            "predictions": 18,
+            "actual_win_rate": 1.0
+          }
+        },
+        "profit_factor": 1.660706,
+        "profit_factor_contribution": 1.660706,
+        "false_signal_rate": 0.567657,
+        "average_return": 0.31399901,
+        "average_pnl_points": 0.31399901,
+        "max_drawdown_contribution": 0.0,
+        "drift_score": 0.513824,
+        "observations": 303,
+        "number_of_predictions": 303,
+        "number_of_recommended_predictions": 303,
+        "source": "mixed"
+      },
+      "lightgbm": {
+        "model_win_rate": 0.431438,
+        "buy_precision": 0.358824,
+        "sell_precision": 0.527132,
+        "hold_accuracy": 0.0,
+        "win_rate": 0.431438,
+        "average_confidence": 0.473573,
+        "confidence_calibration": {
+          "0.50-0.60": {
+            "wins": 131,
+            "predictions": 303,
+            "actual_win_rate": 0.432343
+          }
+        },
+        "profit_factor": 1.65593,
+        "profit_factor_contribution": 1.65593,
+        "false_signal_rate": 0.568562,
+        "average_return": 0.31151204,
+        "average_pnl_points": 0.31151204,
+        "max_drawdown_contribution": 0.0,
+        "drift_score": 0.526427,
+        "observations": 303,
+        "number_of_predictions": 303,
+        "number_of_recommended_predictions": 299,
+        "source": "mixed"
+      },
+      "patchtst": {
+        "model_win_rate": 0.432886,
+        "buy_precision": 0.360947,
+        "sell_precision": 0.527132,
+        "hold_accuracy": 0.0,
+        "win_rate": 0.432886,
+        "average_confidence": 0.477891,
+        "confidence_calibration": {
+          "0.50-0.60": {
+            "wins": 131,
+            "predictions": 303,
+            "actual_win_rate": 0.432343
+          }
+        },
+        "profit_factor": 1.65593,
+        "profit_factor_contribution": 1.65593,
+        "false_signal_rate": 0.567114,
+        "average_return": 0.31255738,
+        "average_pnl_points": 0.31255738,
+        "max_drawdown_contribution": 0.0,
+        "drift_score": 0.522109,
+        "observations": 303,
+        "number_of_predictions": 303,
+        "number_of_recommended_predictions": 298,
+        "source": "mixed"
+      },
+      "cnn_lstm": {
+        "model_win_rate": 0.431438,
+        "buy_precision": 0.358824,
+        "sell_precision": 0.527132,
+        "hold_accuracy": 0.0,
+        "win_rate": 0.431438,
+        "average_confidence": 0.481339,
+        "confidence_calibration": {
+          "0.50-0.60": {
+            "wins": 113,
+            "predictions": 285,
+            "actual_win_rate": 0.396491
+          },
+          "0.60-0.70": {
+            "wins": 18,
+            "predictions": 18,
+            "actual_win_rate": 1.0
+          }
+        },
+        "profit_factor": 1.65593,
+        "profit_factor_contribution": 1.65593,
+        "false_signal_rate": 0.568562,
+        "average_return": 0.31151204,
+        "average_pnl_points": 0.31151204,
+        "max_drawdown_contribution": 0.0,
+        "drift_score": 0.518661,
+        "observations": 303,
+        "number_of_predictions": 303,
+        "number_of_recommended_predictions": 299,
+        "source": "mixed"
+      },
+      "nhits": {
+        "model_win_rate": 0.430976,
+        "buy_precision": 0.360947,
+        "sell_precision": 0.523438,
+        "hold_accuracy": 0.0,
+        "win_rate": 0.430976,
+        "average_confidence": 0.462947,
+        "confidence_calibration": {
+          "0.50-0.60": {
+            "wins": 131,
+            "predictions": 303,
+            "actual_win_rate": 0.432343
+          }
+        },
+        "profit_factor": 1.641846,
+        "profit_factor_contribution": 1.641846,
+        "false_signal_rate": 0.569024,
+        "average_return": 0.30687576,
+        "average_pnl_points": 0.30687576,
+        "max_drawdown_contribution": 0.0,
+        "drift_score": 0.537053,
+        "observations": 303,
+        "number_of_predictions": 303,
+        "number_of_recommended_predictions": 297,
+        "source": "mixed"
+      }
+    }
+  },
+  "model_metrics": {
+    "kronos": {
+      "model_win_rate": 0.432343,
+      "buy_precision": 0.362069,
+      "sell_precision": 0.527132,
+      "hold_accuracy": 0.0,
+      "win_rate": 0.432343,
+      "average_confidence": 0.49611,
+      "confidence_calibration": {
+        "0.50-0.60": {
+          "wins": 113,
+          "predictions": 285,
+          "actual_win_rate": 0.396491
+        },
+        "0.60-0.70": {
+          "wins": 18,
+          "predictions": 18,
+          "actual_win_rate": 1.0
+        }
+      },
+      "profit_factor": 1.660706,
+      "profit_factor_contribution": 1.660706,
+      "false_signal_rate": 0.567657,
+      "average_return": 0.31399901,
+      "average_pnl_points": 0.31399901,
+      "max_drawdown_contribution": 0.0,
+      "drift_score": 0.50389,
+      "observations": 303,
+      "number_of_predictions": 303,
+      "number_of_recommended_predictions": 303,
+      "source": "mixed"
+    },
+    "tcn": {
+      "model_win_rate": 0.432343,
+      "buy_precision": 0.362069,
+      "sell_precision": 0.527132,
+      "hold_accuracy": 0.0,
+      "win_rate": 0.432343,
+      "average_confidence": 0.486176,
+      "confidence_calibration": {
+        "0.50-0.60": {
+          "wins": 113,
+          "predictions": 285,
+          "actual_win_rate": 0.396491
+        },
+        "0.60-0.70": {
+          "wins": 18,
+          "predictions": 18,
+          "actual_win_rate": 1.0
+        }
+      },
+      "profit_factor": 1.660706,
+      "profit_factor_contribution": 1.660706,
+      "false_signal_rate": 0.567657,
+      "average_return": 0.31399901,
+      "average_pnl_points": 0.31399901,
+      "max_drawdown_contribution": 0.0,
+      "drift_score": 0.513824,
+      "observations": 303,
+      "number_of_predictions": 303,
+      "number_of_recommended_predictions": 303,
+      "source": "mixed"
+    },
+    "lightgbm": {
+      "model_win_rate": 0.431438,
+      "buy_precision": 0.358824,
+      "sell_precision": 0.527132,
+      "hold_accuracy": 0.0,
+      "win_rate": 0.431438,
+      "average_confidence": 0.473573,
+      "confidence_calibration": {
+        "0.50-0.60": {
+          "wins": 131,
+          "predictions": 303,
+          "actual_win_rate": 0.432343
+        }
+      },
+      "profit_factor": 1.65593,
+      "profit_factor_contribution": 1.65593,
+      "false_signal_rate": 0.568562,
+      "average_return": 0.31151204,
+      "average_pnl_points": 0.31151204,
+      "max_drawdown_contribution": 0.0,
+      "drift_score": 0.526427,
+      "observations": 303,
+      "number_of_predictions": 303,
+      "number_of_recommended_predictions": 299,
+      "source": "mixed"
+    },
+    "patchtst": {
+      "model_win_rate": 0.432886,
+      "buy_precision": 0.360947,
+      "sell_precision": 0.527132,
+      "hold_accuracy": 0.0,
+      "win_rate": 0.432886,
+      "average_confidence": 0.477891,
+      "confidence_calibration": {
+        "0.50-0.60": {
+          "wins": 131,
+          "predictions": 303,
+          "actual_win_rate": 0.432343
+        }
+      },
+      "profit_factor": 1.65593,
+      "profit_factor_contribution": 1.65593,
+      "false_signal_rate": 0.567114,
+      "average_return": 0.31255738,
+      "average_pnl_points": 0.31255738,
+      "max_drawdown_contribution": 0.0,
+      "drift_score": 0.522109,
+      "observations": 303,
+      "number_of_predictions": 303,
+      "number_of_recommended_predictions": 298,
+      "source": "mixed"
+    },
+    "cnn_lstm": {
+      "model_win_rate": 0.431438,
+      "buy_precision": 0.358824,
+      "sell_precision": 0.527132,
+      "hold_accuracy": 0.0,
+      "win_rate": 0.431438,
+      "average_confidence": 0.481339,
+      "confidence_calibration": {
+        "0.50-0.60": {
+          "wins": 113,
+          "predictions": 285,
+          "actual_win_rate": 0.396491
+        },
+        "0.60-0.70": {
+          "wins": 18,
+          "predictions": 18,
+          "actual_win_rate": 1.0
+        }
+      },
+      "profit_factor": 1.65593,
+      "profit_factor_contribution": 1.65593,
+      "false_signal_rate": 0.568562,
+      "average_return": 0.31151204,
+      "average_pnl_points": 0.31151204,
+      "max_drawdown_contribution": 0.0,
+      "drift_score": 0.518661,
+      "observations": 303,
+      "number_of_predictions": 303,
+      "number_of_recommended_predictions": 299,
+      "source": "mixed"
+    },
+    "nhits": {
+      "model_win_rate": 0.430976,
+      "buy_precision": 0.360947,
+      "sell_precision": 0.523438,
+      "hold_accuracy": 0.0,
+      "win_rate": 0.430976,
+      "average_confidence": 0.462947,
+      "confidence_calibration": {
+        "0.50-0.60": {
+          "wins": 131,
+          "predictions": 303,
+          "actual_win_rate": 0.432343
+        }
+      },
+      "profit_factor": 1.641846,
+      "profit_factor_contribution": 1.641846,
+      "false_signal_rate": 0.569024,
+      "average_return": 0.30687576,
+      "average_pnl_points": 0.30687576,
+      "max_drawdown_contribution": 0.0,
+      "drift_score": 0.537053,
+      "observations": 303,
+      "number_of_predictions": 303,
+      "number_of_recommended_predictions": 297,
+      "source": "mixed"
+    }
+  },
+  "model_mode": "MOCK_FOR_TEST_ONLY"
+}

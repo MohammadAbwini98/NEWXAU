@@ -1,0 +1,2 @@
+entry,max_adverse_move,max_favorable_move,outcome,realized_rr,risk_reward,signal,status,stop_loss,time,tp1,tp2,tp3
+2356.7119,1.1601,0.333,EXPIRED,0.0,2.0,SELL,BLOCKED_BY_RISK,2575.2718,2026-06-09T17:15:04.680419+00:00,2138.152,1919.592,1810.312

@@ -1,0 +1,7 @@
+model_name,win_rate,buy_precision,sell_precision,observations
+kronos,0.763158,0.52381,0.854545,78
+tcn,0.763158,0.52381,0.854545,78
+lightgbm,0.77027,0.578947,0.836364,78
+patchtst,0.776316,0.578947,0.842105,78
+cnn_lstm,0.75641,0.52381,0.842105,78
+nhits,0.771429,0.529412,0.849057,78

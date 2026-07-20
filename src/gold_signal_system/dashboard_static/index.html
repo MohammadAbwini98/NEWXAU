@@ -1,0 +1,2605 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XAUUSD Signal Dashboard</title>
+  <style>
+    :root {
+      --primary-green: #0f5c38;
+      --dark-green: #063d28;
+      --light-green: #e8f5ee;
+      --bg: #f7f8f7;
+      --card: #ffffff;
+      --muted: #7a8984;
+      --danger: #c94545;
+      --warning: #b7791f;
+      --blue: #285b9a;
+      --border: #e1e7e4;
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: #1f2a26;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: #fbfdfb;
+      border-right: 1px solid var(--border);
+      padding: 18px 12px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      background: var(--dark-green);
+      color: white;
+      border-radius: var(--radius);
+      padding: 14px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .nav-item {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      text-align: left;
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      color: #365046;
+      margin-bottom: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .nav-item:hover,
+    .nav-item:focus-visible {
+      background: #eef4f0;
+      outline: none;
+    }
+
+    .nav-item.active {
+      background: var(--light-green);
+      color: var(--dark-green);
+      font-weight: 700;
+    }
+
+    .main {
+      padding: 18px;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 12px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: auto minmax(210px, 1fr) auto auto auto auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .pill, .action-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 9px 13px;
+      font-size: 13px;
+      color: #354b42;
+    }
+
+    .live-price-pill {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-color: #b7d8c7;
+      background: #f4fbf7;
+      min-width: 0;
+    }
+
+    .live-price-pill strong {
+      color: var(--dark-green);
+      font-size: 18px;
+      white-space: nowrap;
+    }
+
+    .live-price-meta {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .action-btn {
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .action-btn.primary {
+      background: var(--primary-green);
+      border-color: var(--primary-green);
+      color: #fff;
+    }
+
+    .action-btn:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: 0 8px 18px rgba(7, 38, 25, 0.035);
+      min-width: 0;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      color: #51665e;
+      font-weight: 700;
+    }
+
+    .kpi {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--dark-green);
+      overflow-wrap: anywhere;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: grid;
+      gap: 10px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 10px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .market-sessions-card {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .market-sessions-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .market-sessions-title {
+      display: grid;
+      gap: 3px;
+    }
+
+    .market-sessions-title h3 {
+      margin: 0;
+      color: #344c42;
+    }
+
+    .market-sessions-current {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--dark-green);
+      font-size: 13px;
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .market-sessions-current time {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .session-dot {
+      width: 8px;
+      height: 8px;
+      flex: 0 0 8px;
+      border-radius: 50%;
+      background: #aab6b1;
+      box-shadow: 0 0 0 3px rgba(122, 137, 132, 0.12);
+    }
+
+    .market-sessions-current .session-dot,
+    .market-session.active .session-dot {
+      background: var(--primary-green);
+      box-shadow: 0 0 0 3px rgba(15, 92, 56, 0.14);
+    }
+
+    .market-session-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      padding: 12px;
+      margin: 0;
+      list-style: none;
+    }
+
+    .market-session {
+      display: grid;
+      align-content: start;
+      gap: 7px;
+      min-width: 0;
+      min-height: 122px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #fbfdfc;
+    }
+
+    .market-session.active {
+      border-color: #77b493;
+      background: linear-gradient(145deg, #f3fbf6 0%, var(--light-green) 100%);
+      box-shadow: inset 0 0 0 1px rgba(15, 92, 56, 0.08), 0 8px 18px rgba(15, 92, 56, 0.08);
+    }
+
+    .market-session.active.market-closed {
+      border-color: #deb56d;
+      background: #fff9ed;
+      box-shadow: inset 0 0 0 1px rgba(183, 121, 31, 0.08), 0 8px 18px rgba(183, 121, 31, 0.08);
+    }
+
+    .market-session.active.market-closed .session-dot {
+      background: var(--warning);
+      box-shadow: 0 0 0 3px rgba(183, 121, 31, 0.14);
+    }
+
+    .market-session-state {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 20px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .market-session.active .market-session-state {
+      color: var(--dark-green);
+    }
+
+    .market-session-name {
+      color: #263d34;
+      font-size: 14px;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .market-session-time {
+      color: #415b50;
+      font-size: 17px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .market-session-access {
+      width: fit-content;
+      border-radius: 999px;
+      padding: 4px 7px;
+      background: #edf1ef;
+      color: #61716b;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .market-session-access.enabled {
+      background: #d9f2e5;
+      color: var(--dark-green);
+    }
+
+    .market-session-access.closed {
+      background: #fff0d1;
+      color: #85540d;
+    }
+
+    .market-sessions-note {
+      margin: 0;
+      padding: 0 14px 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .status-buy { color: var(--primary-green); }
+    .status-sell { color: var(--danger); }
+    .status-hold { color: #5d6d68; }
+    .status-blocked { color: var(--warning); }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .table th, .table td {
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      padding: 8px 4px;
+      vertical-align: top;
+    }
+
+    .table th {
+      color: #51665e;
+      font-weight: 700;
+      width: 36%;
+    }
+
+    .badge {
+      border-radius: 999px;
+      font-size: 12px;
+      padding: 4px 8px;
+      display: inline-block;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge.buy { background: #d9f2e5; color: var(--dark-green); }
+    .badge.sell { background: #fde2e2; color: #932626; }
+    .badge.hold { background: #edf1ef; color: #61716b; }
+    .badge.warn { background: #fff4da; color: #8a5a12; }
+    .badge.info { background: #e8f0fb; color: var(--blue); }
+
+    .muted { color: var(--muted); font-size: 13px; }
+
+    .stack {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field {
+      display: grid;
+      gap: 5px;
+      font-size: 13px;
+      color: #51665e;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 9px 10px;
+      background: #fff;
+      color: #1f2a26;
+      width: 100%;
+    }
+
+    .field textarea {
+      min-height: 170px;
+      resize: vertical;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .toggle-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .toggle-row {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #fbfdfc;
+      min-width: 0;
+      color: #354b42;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .toggle-row.wide {
+      grid-column: 1 / -1;
+    }
+
+    .toggle-row input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary-green);
+      flex: 0 0 auto;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      background: #fbfdfc;
+    }
+
+    .metric-card strong {
+      display: block;
+      color: var(--dark-green);
+      font-size: 22px;
+      margin-top: 4px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 28, 23, 0.32);
+      display: grid;
+      place-items: center;
+      z-index: 20;
+      padding: 18px;
+    }
+
+    .modal {
+      width: min(980px, 100%);
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 18px 48px rgba(7, 38, 25, 0.18);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .modal-header h3 { margin: 0; }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .detail-panel {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      background: #fbfdfc;
+      min-width: 0;
+    }
+
+    .detail-panel h4 {
+      margin: 0 0 10px;
+      color: var(--dark-green);
+      font-size: 14px;
+    }
+
+    .clickable-row { cursor: pointer; }
+    .clickable-row:hover { background: #f2f8f5; }
+
+    .log-list {
+      display: grid;
+      gap: 6px;
+      max-height: 460px;
+      overflow: auto;
+      font-size: 12px;
+      font-family: Consolas, "Courier New", monospace;
+    }
+
+    .log-item {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 1100px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar {
+        position: static;
+        height: auto;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4px;
+      }
+      .brand { grid-column: 1 / -1; }
+      .topbar, .cards, .grid-2, .grid-3, .metric-grid, .detail-grid { grid-template-columns: 1fr; }
+      .market-session-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+    }
+
+    @media (max-width: 560px) {
+      .market-sessions-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .market-sessions-current { text-align: left; }
+      .market-session-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="Dashboard navigation">
+      <div class="brand">XAUUSD Signal Desk</div>
+      <button class="nav-item active" type="button" data-view="dashboard">Dashboard</button>
+      <button class="nav-item" type="button" data-view="live">Live Signals</button>
+      <button class="nav-item" type="button" data-view="execution">Execution</button>
+      <button class="nav-item" type="button" data-view="control">Control Unit</button>
+      <button class="nav-item" type="button" data-view="history">Signal History</button>
+      <button class="nav-item" type="button" data-view="models">Model Ensemble</button>
+      <button class="nav-item" type="button" data-view="indicators">Indicators</button>
+      <button class="nav-item" type="button" data-view="risk">Risk Center</button>
+      <button class="nav-item" type="button" data-view="backtesting">Backtesting</button>
+      <button class="nav-item" type="button" data-view="replay">Replay</button>
+      <button class="nav-item" type="button" data-view="optimization">Optimization</button>
+      <button class="nav-item" type="button" data-view="health">Health</button>
+      <button class="nav-item" type="button" data-view="paper">Paper Trading</button>
+      <button class="nav-item" type="button" data-view="settings">Settings</button>
+      <button class="nav-item" type="button" data-view="logs">Logs</button>
+    </aside>
+
+    <main class="main">
+      <section class="topbar">
+        <div class="pill">Instrument: XAUUSD</div>
+        <div class="pill live-price-pill">
+          <span>Live Gold</span>
+          <strong id="live-price">--</strong>
+          <span class="live-price-meta" id="live-price-time">Waiting</span>
+        </div>
+        <div class="pill" id="timeframe">Timeframe: 5m</div>
+        <div class="pill" id="market-status">Provider: Capital.com</div>
+        <div class="pill" id="news-status">News: Clear</div>
+        <button class="action-btn primary" type="button" data-action="run-cycle">Run Cycle</button>
+      </section>
+
+      <section class="cards">
+        <div class="card">
+          <h3>Current Signal</h3>
+          <div class="kpi" id="kpi-signal">--</div>
+          <div class="muted" id="kpi-signal-status">Status: --</div>
+        </div>
+        <div class="card">
+          <h3>Model Consensus</h3>
+          <div class="kpi" id="kpi-consensus">--</div>
+          <div class="muted" id="kpi-agreement">Confidence: --</div>
+        </div>
+        <div class="card">
+          <h3>Risk Quality</h3>
+          <div class="kpi" id="kpi-risk">--</div>
+          <div class="muted" id="kpi-rr">R:R: --</div>
+        </div>
+        <div class="card">
+          <h3>Today's Performance</h3>
+          <div class="kpi" id="kpi-signals">0</div>
+          <div class="muted" id="kpi-performance">Win rate: --</div>
+        </div>
+      </section>
+
+      <section id="view-dashboard" class="view active"></section>
+      <section id="view-live" class="view"></section>
+      <section id="view-execution" class="view"></section>
+      <section id="view-control" class="view"></section>
+      <section id="view-history" class="view"></section>
+      <section id="view-models" class="view"></section>
+      <section id="view-indicators" class="view"></section>
+      <section id="view-risk" class="view"></section>
+      <section id="view-backtesting" class="view"></section>
+      <section id="view-replay" class="view"></section>
+      <section id="view-optimization" class="view"></section>
+      <section id="view-health" class="view"></section>
+      <section id="view-paper" class="view"></section>
+      <section id="view-settings" class="view"></section>
+      <section id="view-logs" class="view"></section>
+    </main>
+  </div>
+
+  <script>
+    const state = {
+      activeView: "dashboard",
+      summary: {},
+      latest: {},
+      votes: [],
+      indicators: {},
+      risk: {},
+      history: { items: [], total: 0, page: 1, page_size: 25 },
+      historyFilters: { signal: "", status: "", outcome: "", from_time: "", to_time: "", page: 1, page_size: 25 },
+      outcomes: { items: [] },
+      artifacts: {},
+      performance: {},
+      backtest: {},
+      backtests: { items: [] },
+      backtestFolds: { items: [] },
+      backtestTrades: { items: [] },
+      selectedBacktestId: null,
+      showBacktestModal: false,
+      backtestRunStatus: "",
+      backtestStatus: { status: "IDLE", active: false, progress: 0 },
+      backtestPollTimer: null,
+      livePrice: {},
+      executionStatus: {},
+      controlUnit: { config: {}, sessions: [], current_session: "UNKNOWN", statistics: {} },
+      executionOrders: { items: [], total: 0, page: 1, page_size: 25 },
+      executionFilters: { status: "", outcome: "", direction: "", market_session: "", signal_id: "", from_time: "", to_time: "", page: 1, page_size: 25 },
+      executionDetail: { open: false, loading: false, order: null, signal: null, error: "" },
+      regime: {},
+      timeframes: {},
+      newsRisk: {},
+      health: {},
+      weights: {},
+      replay: {},
+      activeProfile: {},
+      optimizationRuns: { items: [] },
+      outcomeSummary: {},
+      logs: []
+    };
+
+    const viewIds = ["dashboard", "live", "execution", "control", "history", "models", "indicators", "risk", "backtesting", "replay", "optimization", "health", "paper", "settings", "logs"];
+
+    function escapeHtml(value) {
+      return String(value ?? "--")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function labelClass(value) {
+      const text = String(value || "");
+      if (text.includes("BUY")) return "status-buy";
+      if (text.includes("SELL")) return "status-sell";
+      if (text.includes("BLOCKED")) return "status-blocked";
+      return "status-hold";
+    }
+
+    function badgeClass(value) {
+      if (value === "BUY") return "buy";
+      if (value === "WIN") return "buy";
+      if (value === "SELL") return "sell";
+      if (value === "LOSS") return "sell";
+      if (value === "HOLD") return "hold";
+      if (value === "PARTIAL_TP" || value === "BREAKEVEN") return "info";
+      if (String(value || "").includes("BLOCKED")) return "warn";
+      if (value === "MISSED_ENTRY" || value === "EXPIRED") return "warn";
+      return "info";
+    }
+
+    function row(k, v, raw = false) {
+      return `<tr><th>${escapeHtml(k)}</th><td>${raw ? v : escapeHtml(v)}</td></tr>`;
+    }
+
+    function card(title, body) {
+      return `<div class="card"><h3>${escapeHtml(title)}</h3>${body}</div>`;
+    }
+
+    function table(rows) {
+      return `<table class="table"><tbody>${rows.join("")}</tbody></table>`;
+    }
+
+    function formatPercent(value) {
+      const n = Number(value || 0);
+      return `${Math.round(n * 100)}%`;
+    }
+
+    function formatNumber(value, digits = 4) {
+      if (value === null || value === undefined || value === "") return "--";
+      const n = Number(value);
+      return Number.isFinite(n) ? n.toFixed(digits) : String(value);
+    }
+
+    function formatPrice(value) {
+      if (value === null || value === undefined || value === "") return "--";
+      const n = Number(value);
+      return Number.isFinite(n) ? n.toFixed(2) : String(value);
+    }
+
+    function formatTickTime(value) {
+      if (!value) return "Waiting";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value);
+      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    }
+
+    function formatSessionName(value) {
+      return String(value || "Unknown")
+        .toLowerCase()
+        .split("_")
+        .map(part => part ? `${part[0].toUpperCase()}${part.slice(1)}` : "")
+        .join(" ");
+    }
+
+    function formatJordanClock(value) {
+      if (!value) return "--:--";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "--:--";
+      return new Intl.DateTimeFormat(undefined, {
+        timeZone: "Asia/Amman",
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(date);
+    }
+
+    function marketSessionSortValue(session) {
+      const [hours, minutes] = String(session?.start || "00:00").split(":").map(Number);
+      const startMinutes = (Number.isFinite(hours) ? hours : 0) * 60 + (Number.isFinite(minutes) ? minutes : 0);
+      const priorityTieBreak = session?.trading_allowed === false ? 0 : 1;
+      return startMinutes * 10 + priorityTieBreak;
+    }
+
+    function renderMarketSessions() {
+      const control = state.controlUnit || {};
+      const stats = control.statistics || {};
+      const schedule = [...(control.session_config || stats.session_config || [])]
+        .sort((a, b) => marketSessionSortValue(a) - marketSessionSortValue(b));
+      const activeSession = stats.current_session || control.current_session || "UNKNOWN";
+      const jordanTime = stats.current_session_jordan_time || control.current_session_jordan_time;
+      const allowedSessions = control.config?.allowed_sessions || {};
+
+      if (!schedule.length) {
+        return card("Market Sessions", `<span class="muted">Session schedule is unavailable.</span>`);
+      }
+
+      const items = schedule.map(session => {
+        const name = String(session.name || "UNKNOWN");
+        const isActive = name === activeSession;
+        const marketClosed = session.trading_allowed === false;
+        const controlEnabled = Boolean(allowedSessions[name]);
+        const accessLabel = marketClosed ? "Market closed" : controlEnabled ? "Control enabled" : "Control disabled";
+        const accessClass = marketClosed ? "closed" : controlEnabled ? "enabled" : "";
+        const stateLabel = isActive ? "Active now" : "Scheduled";
+        return `
+          <li
+            class="market-session${isActive ? " active" : ""}${marketClosed ? " market-closed" : ""}"
+            aria-current="${isActive ? "true" : "false"}"
+            aria-label="${escapeHtml(`${formatSessionName(name)}, ${session.start} to ${session.end} Jordan time, ${stateLabel}, ${accessLabel}`)}"
+          >
+            <div class="market-session-state"><span class="session-dot" aria-hidden="true"></span>${escapeHtml(stateLabel)}</div>
+            <div class="market-session-name">${escapeHtml(formatSessionName(name))}</div>
+            <div class="market-session-time">${escapeHtml(session.start)}–${escapeHtml(session.end)}</div>
+            <span class="market-session-access ${accessClass}">${escapeHtml(accessLabel)}</span>
+          </li>
+        `;
+      }).join("");
+
+      return `
+        <section class="card market-sessions-card" aria-labelledby="market-sessions-title">
+          <header class="market-sessions-header">
+            <div class="market-sessions-title">
+              <h3 id="market-sessions-title">Market Sessions</h3>
+              <span class="muted">Gold trading schedule · Asia/Amman</span>
+            </div>
+            <div class="market-sessions-current" aria-live="polite">
+              <span class="session-dot" aria-hidden="true"></span>
+              <span>${escapeHtml(formatSessionName(activeSession))}</span>
+              <time datetime="${escapeHtml(jordanTime || "")}">${escapeHtml(formatJordanClock(jordanTime))}</time>
+            </div>
+          </header>
+          <ol class="market-session-grid" aria-label="Gold market session schedule">${items}</ol>
+          <p class="market-sessions-note">Times are Jordan local time. Daily Break takes priority where schedules overlap.</p>
+        </section>
+      `;
+    }
+
+    function updateLivePrice() {
+      const tick = state.livePrice || {};
+      const priceText = tick.price !== undefined ? formatPrice(tick.price) : "--";
+      document.getElementById("live-price").textContent = priceText;
+      if (tick.price !== undefined) {
+        const spread = Number(tick.ask) - Number(tick.bid);
+        const persistedSpread = tick.spread !== undefined ? Number(tick.spread) : spread;
+        const spreadText = Number.isFinite(persistedSpread) ? ` | spread ${persistedSpread.toFixed(2)}` : "";
+        document.getElementById("live-price-time").textContent = `${formatTickTime(tick.timestamp)}${spreadText}`;
+        document.getElementById("market-status").textContent = `Stream: ${tick.status || tick.stream?.status || "Live"}`;
+        return;
+      }
+      const stream = tick.stream || {};
+      document.getElementById("live-price-time").textContent = tick.status || stream.status || "Waiting";
+      document.getElementById("market-status").textContent = `Stream: ${tick.status || stream.status || "Waiting"}`;
+    }
+
+    function addLog(event, data = {}) {
+      state.logs.unshift({
+        at: new Date().toISOString(),
+        event,
+        data
+      });
+      state.logs = state.logs.slice(0, 80);
+      if (state.activeView === "logs") renderLogs();
+    }
+
+    async function fetchJson(path, options) {
+      const response = await fetch(path, options);
+      if (!response.ok) {
+        throw new Error(`${path} returned ${response.status}`);
+      }
+      return response.json();
+    }
+
+    async function loadCoreData() {
+      const [summary, latest, votes, indicators, risk, livePrice, regime, timeframes, newsRisk, health, weights] = await Promise.all([
+        fetchJson("/api/dashboard/summary"),
+        fetchJson("/api/signals/latest"),
+        fetchJson("/api/models/latest-votes"),
+        fetchJson("/api/indicators/latest"),
+        fetchJson("/api/risk/status"),
+        fetchJson("/api/price/latest"),
+        fetchJson("/api/market/regime/current"),
+        fetchJson("/api/market/timeframes/current"),
+        fetchJson("/api/news/current-risk"),
+        fetchJson("/api/system/health"),
+        fetchJson("/api/models/weights/current")
+      ]);
+
+      state.summary = summary || {};
+      state.latest = latest || {};
+      state.votes = Array.isArray(votes) ? votes : [];
+      state.indicators = indicators || {};
+      state.risk = risk || {};
+      state.livePrice = livePrice || {};
+      state.regime = regime || {};
+      state.timeframes = timeframes || {};
+      state.newsRisk = newsRisk || {};
+      state.health = health || {};
+      state.weights = weights || {};
+      updateLivePrice();
+      updateKpis();
+    }
+
+    async function loadSupplementalData() {
+      const [history, outcomes, artifacts, performance, backtest, backtestStatus, backtests, activeProfile, optimizationRuns, outcomeSummary, executionStatus, controlUnit, controlStats] = await Promise.all([
+        fetchJson("/api/signals/history?page=1&page_size=25"),
+        fetchJson("/api/signals/outcomes?page=1&page_size=25"),
+        fetchJson("/api/models/artifacts"),
+        fetchJson("/api/models/performance"),
+        fetchJson("/api/backtest/summary"),
+        fetchJson("/api/backtest/status"),
+        fetchJson("/api/backtests"),
+        fetchJson("/api/strategy/profiles/active"),
+        fetchJson("/api/optimization/runs"),
+        fetchJson("/api/signals/outcomes/summary"),
+        fetchJson("/api/execution/status"),
+        fetchJson("/api/execution/control"),
+        fetchJson("/api/execution/control/stats")
+      ]);
+
+      state.history = history || { items: [] };
+      state.outcomes = outcomes || { items: [] };
+      state.artifacts = artifacts || {};
+      state.performance = performance || {};
+      state.backtest = backtest || {};
+      state.backtestStatus = backtestStatus || { status: "IDLE", active: false, progress: 0 };
+      state.backtests = backtests || { items: [] };
+      if (!state.selectedBacktestId && state.backtest.run_id) {
+        state.selectedBacktestId = state.backtest.run_id;
+      }
+      if (state.selectedBacktestId) {
+        await loadBacktestDetails(state.selectedBacktestId);
+      }
+      state.activeProfile = activeProfile || {};
+      state.optimizationRuns = optimizationRuns || { items: [] };
+      state.outcomeSummary = outcomeSummary || {};
+      state.executionStatus = executionStatus || {};
+      state.controlUnit = { ...(controlUnit || {}), statistics: controlStats || {} };
+      await loadExecutionOrders(false);
+    }
+
+    async function loadExecutionOrders(resetPage = false) {
+      const f = state.executionFilters;
+      if (resetPage) f.page = 1;
+      const params = executionOrderParams(true);
+      state.executionOrders = await fetchJson(`/api/execution/orders?${params.toString()}`);
+      if (state.activeView === "execution") renderExecution();
+    }
+
+    function executionOrderParams(includePaging = false) {
+      const f = state.executionFilters;
+      const params = new URLSearchParams();
+      if (includePaging) {
+        params.set("page", String(Math.max(1, f.page || 1)));
+        params.set("page_size", String(f.page_size || 25));
+      }
+      params.set("executed_only", "true");
+      if (f.status) params.set("status", f.status);
+      if (f.outcome) params.set("outcome", f.outcome);
+      if (f.direction) params.set("direction", f.direction);
+      if (f.market_session) params.set("market_session", f.market_session);
+      if (f.signal_id) params.set("signal_id", f.signal_id);
+      if (f.from_time) params.set("from_time", new Date(f.from_time).toISOString());
+      if (f.to_time) params.set("to_time", new Date(f.to_time).toISOString());
+      return params;
+    }
+
+    async function downloadExecutionOrdersJson(button) {
+      const params = executionOrderParams(false);
+      button.disabled = true;
+      try {
+        const response = await fetch(`/api/execution/orders/export?${params.toString()}`);
+        if (!response.ok) throw new Error(`Export failed with ${response.status}`);
+        const blob = await response.blob();
+        const disposition = response.headers.get("Content-Disposition") || "";
+        const match = disposition.match(/filename="([^"]+)"/);
+        const filename = match ? match[1] : `execution_orders_${new Date().toISOString().replaceAll(":", "").replaceAll(".", "")}.json`;
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+        addLog("execution.export.downloaded", { filename });
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function loadBacktestDetails(runId) {
+      if (!runId) return;
+      const [folds, trades] = await Promise.all([
+        fetchJson(`/api/backtests/${encodeURIComponent(runId)}/windows`),
+        fetchJson(`/api/backtests/${encodeURIComponent(runId)}/trades`)
+      ]);
+      state.backtestFolds = folds || { items: [] };
+      state.backtestTrades = trades || { items: [] };
+    }
+
+    async function loadBacktestStatus() {
+      state.backtestStatus = await fetchJson("/api/backtest/status");
+      if (state.backtestStatus?.run_id) {
+        state.selectedBacktestId = state.backtestStatus.run_id;
+      }
+      if (state.backtestStatus?.status === "COMPLETED") {
+        state.backtest = await fetchJson("/api/backtest/summary");
+        state.backtests = await fetchJson("/api/backtests");
+        if (state.selectedBacktestId) await loadBacktestDetails(state.selectedBacktestId);
+      }
+      if (state.activeView === "backtesting") renderBacktesting();
+      scheduleBacktestPolling();
+    }
+
+    function scheduleBacktestPolling() {
+      if (state.backtestPollTimer) {
+        clearTimeout(state.backtestPollTimer);
+        state.backtestPollTimer = null;
+      }
+      if (state.backtestStatus?.active || state.backtestStatus?.status === "RUNNING") {
+        state.backtestPollTimer = setTimeout(() => {
+          loadBacktestStatus().catch(err => addLog("backtest.status.error", { message: String(err) }));
+        }, 3000);
+      }
+    }
+
+    function updateKpis() {
+      const latest = state.latest;
+      const summary = state.summary;
+      const indicators = state.indicators;
+
+      document.getElementById("kpi-signal").innerHTML = `<span class="${labelClass(latest.signal)}">${escapeHtml(latest.signal)}</span>`;
+      document.getElementById("kpi-signal-status").textContent = `Status: ${latest.status || "--"}`;
+      document.getElementById("kpi-consensus").textContent = latest.model_consensus || "--";
+      document.getElementById("kpi-agreement").textContent = `Confidence: ${formatPercent(latest.confidence)}`;
+      document.getElementById("kpi-risk").textContent = latest.risk_status || "--";
+      document.getElementById("kpi-rr").textContent = `R:R: ${latest.risk_reward ?? "--"}`;
+      document.getElementById("kpi-signals").textContent = summary?.today_performance?.signals ?? 0;
+      document.getElementById("kpi-performance").textContent = `Win rate: ${formatPercent(summary?.today_performance?.win_rate)}`;
+      document.getElementById("timeframe").textContent = `Timeframe: ${latest.timeframe || "--"}`;
+      document.getElementById("news-status").textContent = `News: ${indicators.news_status || "CLEAR"}`;
+    }
+
+    function renderDashboard() {
+      const latest = state.latest;
+      const indicators = state.indicators;
+      const risk = state.risk;
+      const votes = state.votes;
+
+      document.getElementById("view-dashboard").innerHTML = `
+        ${renderMarketSessions()}
+        <div class="grid-2">
+          ${card("Live Recommendation", table([
+            row("Signal", `<span class="${labelClass(latest.signal)}">${escapeHtml(latest.signal)}</span>`, true),
+            row("Status", latest.status),
+            row("Confidence", formatPercent(latest.confidence)),
+            row("Score", latest.score),
+            row("Entry Type", latest.entry_type),
+            row("Current Price", formatNumber(latest.current_price)),
+            row("Valid For", latest.valid_for_minutes ? `${latest.valid_for_minutes} min` : "--"),
+            row("Reasons", Array.isArray(latest.reasons) ? latest.reasons.slice(0, 3).join(" | ") : "--")
+          ]))}
+          ${card("Entry / SL / TP", table([
+            row("Entry", formatNumber(latest.entry_price)),
+            row("Stop Loss", formatNumber(latest.stop_loss)),
+            row("TP1", formatNumber(latest.take_profit_1)),
+            row("TP2", formatNumber(latest.take_profit_2)),
+            row("TP3", formatNumber(latest.take_profit_3)),
+            row("Risk Amount", formatNumber(latest.risk_amount)),
+            row("Reward Amount", formatNumber(latest.reward_amount)),
+            row("Risk/Reward", latest.risk_reward),
+            row("Risk Level", latest.risk_level),
+            row("Outcome", latest.outcome_status)
+          ]))}
+        </div>
+        <div class="grid-3">
+          ${card("Model Votes", renderVotesList(votes))}
+          ${card("Indicator Summary", renderIndicatorSummary(indicators))}
+          ${card("SMC Analysis", renderSMCSummary(indicators?.smc))}
+        </div>
+        <div class="grid-3">
+          ${card("Risk Center", renderRiskSummary(risk))}
+          ${card("Recent Signal Outcomes", renderRecentOutcomes(state.outcomes.items || []))}
+          ${card("Market Regime", renderRegimeSummary(state.regime))}
+        </div>
+        <div class="grid-3">
+          ${card("Multi-Timeframe", renderTimeframeSummary(state.timeframes))}
+          ${card("News Risk", renderNewsRisk(state.newsRisk))}
+        </div>
+      `;
+    }
+
+    function renderLive() {
+      const latest = state.latest;
+      document.getElementById("view-live").innerHTML = `
+        <div class="grid-2">
+          ${card("Live Signal", table([
+            row("Signal Time", latest.signal_time),
+            row("Signal", latest.signal),
+            row("Status", latest.status),
+            row("Confidence", formatPercent(latest.confidence)),
+            row("Model Consensus", latest.model_consensus),
+            row("Indicator Bias", latest.indicator_bias),
+            row("Risk Status", latest.risk_status),
+            row("Risk Level", latest.risk_level),
+            row("Outcome", latest.outcome_status),
+            row("Entry Triggered", latest.entry_triggered ? "Yes" : "No"),
+            row("Realized R:R", latest.realized_rr ?? "--"),
+            row("Expiry", latest.expiry_time)
+          ]))}
+          ${card("Trade Plan", table([
+            row("Entry Type", latest.entry_type),
+            row("Entry Price", formatNumber(latest.entry_price)),
+            row("Current Price", formatNumber(latest.current_price)),
+            row("Stop Loss", formatNumber(latest.stop_loss)),
+            row("TP1", formatNumber(latest.take_profit_1)),
+            row("TP2", formatNumber(latest.take_profit_2)),
+            row("TP3", formatNumber(latest.take_profit_3)),
+            row("Risk Amount", formatNumber(latest.risk_amount)),
+            row("Reward Amount", formatNumber(latest.reward_amount)),
+            row("R:R", latest.risk_reward)
+          ]))}
+        </div>
+        ${card("Reasons", renderList(latest.reasons))}
+        ${card("Blocked Reasons", renderList(latest.blocked_reasons))}
+      `;
+    }
+
+    function renderExecution() {
+      const status = state.executionStatus || {};
+      const f = state.executionFilters;
+      const sessions = state.controlUnit.sessions?.length ? state.controlUnit.sessions : Object.keys(defaultControlConfig().allowed_sessions);
+      const stats = state.executionOrders.statistics || {};
+      const total = Number(state.executionOrders.total || 0);
+      const page = Number(state.executionOrders.page || f.page || 1);
+      const pageSize = Number(state.executionOrders.page_size || f.page_size || 25);
+      const totalPages = Math.max(1, Math.ceil(total / pageSize));
+      const firstRow = total === 0 ? 0 : (page - 1) * pageSize + 1;
+      const lastRow = Math.min(total, page * pageSize);
+      const rows = (state.executionOrders.items || []).map(item => `
+        <tr class="clickable-row" data-action="open-execution-detail" data-signal-id="${escapeHtml(item.signal_id)}" data-order-key="${escapeHtml(item.idempotency_key || "")}">
+          <td>${escapeHtml(item.signal_id)}</td>
+          <td><span class="badge ${badgeClass(item.status)}">${escapeHtml(item.status)}</span></td>
+          <td><span class="badge ${badgeClass(item.outcome || "PENDING")}">${escapeHtml(item.outcome || "PENDING")}</span></td>
+          <td>${escapeHtml(item.direction)} ${escapeHtml(item.size ?? "")}</td>
+          <td>${escapeHtml(orderMarketSession(item))}</td>
+          <td>${escapeHtml(item.account_name || status.account_name || "")}</td>
+          <td>${escapeHtml(item.transaction_id || "")}</td>
+          <td>${escapeHtml(item.deal_reference || item.deal_id || "")}</td>
+          <td>${escapeHtml(item.outcome_reason || item.broker_status || item.rejection_reason || item.error_message || "")}</td>
+          <td>${escapeHtml(item.requested_at || "")}</td>
+        </tr>
+      `).join("");
+      const snapshot = status.latest_account_snapshot || {};
+      const executionStatusOptions = [
+        { value: "", label: "All statuses" },
+        { value: "READY", label: "Ready" },
+        { value: "SUBMITTED", label: "Submitted" },
+        { value: "CONFIRMED", label: "Confirmed" },
+        { value: "REJECTED", label: "Rejected" }
+      ];
+      const executionOutcomeOptions = [
+        { value: "", label: "All outcomes" },
+        { value: "PENDING", label: "Pending" },
+        { value: "WIN", label: "Win" },
+        { value: "LOSS", label: "Loss" }
+      ];
+      const executionDirectionOptions = [
+        { value: "", label: "All directions" },
+        { value: "BUY", label: "Buy" },
+        { value: "SELL", label: "Sell" }
+      ];
+      const executionSessionOptions = [
+        { value: "", label: "All sessions" },
+        ...sessions.map(session => ({ value: session, label: session }))
+      ];
+      const select = (key, label, options, current) => {
+        const opts = options.map(o => `<option value="${escapeHtml(o.value)}" ${o.value === String(current ?? "") ? "selected" : ""}>${escapeHtml(o.label)}</option>`).join("");
+        return `<label class="field">${escapeHtml(label)}<select data-execution-filter="${key}">${opts}</select></label>`;
+      };
+      const filters = `
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:12px;">
+          ${select("status", "Status", executionStatusOptions, f.status)}
+          ${select("outcome", "Outcome", executionOutcomeOptions, f.outcome)}
+          ${select("direction", "Direction", executionDirectionOptions, f.direction)}
+          ${select("market_session", "Session", executionSessionOptions, f.market_session)}
+          <label class="field">Signal ID<input type="number" min="1" data-execution-filter="signal_id" value="${escapeHtml(f.signal_id ?? "")}"></label>
+          <label class="field">From<input type="datetime-local" data-execution-filter="from_time" value="${escapeHtml(f.from_time ?? "")}"></label>
+          <label class="field">To<input type="datetime-local" data-execution-filter="to_time" value="${escapeHtml(f.to_time ?? "")}"></label>
+          ${select("page_size", "Rows", HISTORY_PAGE_SIZE_OPTIONS, String(f.page_size))}
+        </div>
+        <div class="toolbar">
+          <button class="action-btn" type="button" data-action="refresh-execution">Refresh</button>
+          <button class="action-btn" type="button" data-action="refresh-execution-outcomes">Refresh Outcomes</button>
+          <button class="action-btn" type="button" data-action="export-execution-json">Export Full Payload JSON</button>
+          <button class="action-btn" type="button" data-action="clear-execution-filters">Clear filters</button>
+        </div>`;
+      const filteredStats = `
+        <div class="metric-grid" style="margin:12px 0;">
+          <div class="metric-card"><span>Filtered Orders</span><strong>${escapeHtml(stats.total ?? total)}</strong></div>
+          <div class="metric-card"><span>Win Rate</span><strong>${escapeHtml(stats.win_rate === null || stats.win_rate === undefined ? "--" : formatPercent(stats.win_rate))}</strong></div>
+          <div class="metric-card"><span>W / L / Pending</span><strong>${escapeHtml(`${stats.wins || 0}/${stats.losses || 0}/${stats.pending || 0}`)}</strong></div>
+          <div class="metric-card"><span>Confirmed / Rejected</span><strong>${escapeHtml(`${stats.confirmed || 0}/${stats.rejected || 0}`)}</strong></div>
+        </div>
+        <div class="muted" style="margin-bottom:12px;">By session: ${escapeHtml(formatCountSummary(stats.by_session, "No matching sessions"))}</div>`;
+      const pagination = `
+        <div class="toolbar" style="justify-content:space-between; margin-top:12px;">
+          <span style="color:#51665e; font-size:13px;">${total === 0 ? "No executed signals" : `Showing ${firstRow}-${lastRow} of ${total} - page ${page} of ${totalPages}`}</span>
+          <div style="display:flex; gap:8px;">
+            <button class="action-btn" type="button" data-action="execution-prev" ${page <= 1 ? "disabled" : ""}>Prev</button>
+            <button class="action-btn" type="button" data-action="execution-next" ${page >= totalPages ? "disabled" : ""}>Next</button>
+          </div>
+        </div>`;
+      document.getElementById("view-execution").innerHTML = `
+        <div class="toolbar">
+          <button class="action-btn primary" type="button" data-action="execute-latest">Execute Latest Demo Signal</button>
+        </div>
+        <div class="grid-2">
+          ${card("Capital.com Execution", table([
+            row("Enabled", status.enabled ? "Yes" : "No"),
+            row("Auto Execute", status.auto_execute ? "Yes" : "No"),
+            row("Environment", status.environment),
+            row("Demo Only", status.demo_only ? "Yes" : "No"),
+            row("Account", status.account_name),
+            row("Epic", status.epic),
+            row("Default Size", status.default_size),
+            row("Max Size", status.max_size),
+            row("State", status.message)
+          ]))}
+          ${card("Demo Account Snapshot", table([
+            row("Account ID", snapshot.account_id),
+            row("Account Name", snapshot.account_name),
+            row("Balance", snapshot.balance),
+            row("Available", snapshot.available),
+            row("P/L", snapshot.profit_loss),
+            row("Captured", snapshot.created_at)
+          ]))}
+        </div>
+        ${card("Execution Orders", `
+          ${filters}
+          ${filteredStats}
+          <table class="table">
+            <thead><tr><th>Signal</th><th>Status</th><th>Outcome</th><th>Direction / Size</th><th>Session</th><th>Account</th><th>Transaction ID</th><th>Deal</th><th>Broker / Reason</th><th>Requested</th></tr></thead>
+            <tbody>${rows || `<tr><td colspan="10">No executed signals match the current filters.</td></tr>`}</tbody>
+          </table>
+          ${pagination}
+        `)}
+        ${renderExecutionDetailModal()}
+      `;
+    }
+
+    function orderMarketSession(order) {
+      if (order?.market_session) return order.market_session;
+      const summary = order?.request_json?.recommendation?.indicator_summary || {};
+      const raw = summary.raw_json || {};
+      return summary.session || summary.session_name || summary.market_session || raw.session || raw.session_name || raw.market_session || "UNKNOWN";
+    }
+
+    function formatCountSummary(counts, emptyText = "No data") {
+      const items = Object.entries(counts || {}).filter(([, value]) => Number(value || 0) > 0);
+      if (!items.length) return emptyText;
+      return items
+        .sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0) || String(a[0]).localeCompare(String(b[0])))
+        .map(([key, value]) => `${key}: ${value}`)
+        .join(" | ");
+    }
+
+    function defaultControlConfig() {
+      return {
+        enabled: true,
+        allowed_sessions: {
+          DAILY_BREAK: false,
+          US_OVERLAP: true,
+          LONDON_ACTIVE: true,
+          NY_ACTIVE: true,
+          ASIA_LOW: true
+        },
+        allowed_directions: {
+          BUY: true,
+          SELL: true
+        },
+        require_ensemble_opposite_or_tie: false,
+        apply_to_auto: true,
+        apply_to_manual: true,
+        tie_policy: "directional_vote_tie"
+      };
+    }
+
+    function controlConfig() {
+      const config = state.controlUnit.config || {};
+      return {
+        ...defaultControlConfig(),
+        ...config,
+        allowed_sessions: {
+          ...defaultControlConfig().allowed_sessions,
+          ...(config.allowed_sessions || {})
+        },
+        allowed_directions: {
+          ...defaultControlConfig().allowed_directions,
+          ...(config.allowed_directions || {})
+        }
+      };
+    }
+
+    function renderCountRows(counts, emptyText = "No data") {
+      const rows = Object.entries(counts || {}).sort((a, b) => String(a[0]).localeCompare(String(b[0]))).map(([key, value]) => `
+        <tr><td>${escapeHtml(key)}</td><td>${escapeHtml(value)}</td></tr>
+      `).join("");
+      return `
+        <table class="table">
+          <thead><tr><th>Item</th><th>Count</th></tr></thead>
+          <tbody>${rows || `<tr><td colspan="2">${escapeHtml(emptyText)}</td></tr>`}</tbody>
+        </table>
+      `;
+    }
+
+    function renderNestedCountRows(counts, emptyText = "No data") {
+      const rows = Object.entries(counts || {}).sort((a, b) => String(a[0]).localeCompare(String(b[0]))).map(([key, value]) => `
+        <tr>
+          <td>${escapeHtml(key)}</td>
+          <td>${escapeHtml(Object.entries(value || {}).map(([k, v]) => `${k}: ${v}`).join(" | ") || "--")}</td>
+        </tr>
+      `).join("");
+      return `
+        <table class="table">
+          <thead><tr><th>Group</th><th>Counts</th></tr></thead>
+          <tbody>${rows || `<tr><td colspan="2">${escapeHtml(emptyText)}</td></tr>`}</tbody>
+        </table>
+      `;
+    }
+
+    function renderControlUnit() {
+      const config = controlConfig();
+      const stats = state.controlUnit.statistics || {};
+      const decisionSummary = stats.decision_summary || {};
+      const executionSummary = stats.execution_summary || {};
+      const whatIf = stats.what_if_current_config || {};
+      const latestDecision = stats.latest_decision || {};
+      const sessions = state.controlUnit.sessions?.length ? state.controlUnit.sessions : Object.keys(config.allowed_sessions);
+      const sessionToggles = sessions.map(session => `
+        <label class="toggle-row">
+          <span>${escapeHtml(session)}</span>
+          <input type="checkbox" data-control-session="${escapeHtml(session)}" ${config.allowed_sessions?.[session] ? "checked" : ""} />
+        </label>
+      `).join("");
+      const directionToggles = ["BUY", "SELL"].map(direction => `
+        <label class="toggle-row">
+          <span>${escapeHtml(direction)}</span>
+          <input type="checkbox" data-control-direction="${escapeHtml(direction)}" ${config.allowed_directions?.[direction] ? "checked" : ""} />
+        </label>
+      `).join("");
+
+      document.getElementById("view-control").innerHTML = `
+        <div class="grid-2">
+          ${card("Execution Control", `
+            <div class="toggle-grid">
+              <label class="toggle-row wide">
+                <span>Control Unit</span>
+                <input type="checkbox" data-control-toggle="enabled" ${config.enabled ? "checked" : ""} />
+              </label>
+              ${sessionToggles}
+              <div class="toggle-row wide" style="display:block;">
+                <strong>Allowed Directions</strong>
+              </div>
+              ${directionToggles}
+              <label class="toggle-row wide">
+                <span>Opposite Kronos or Tie</span>
+                <input type="checkbox" data-control-toggle="require_ensemble_opposite_or_tie" ${config.require_ensemble_opposite_or_tie ? "checked" : ""} />
+              </label>
+              <label class="toggle-row">
+                <span>Auto</span>
+                <input type="checkbox" data-control-toggle="apply_to_auto" ${config.apply_to_auto ? "checked" : ""} />
+              </label>
+              <label class="toggle-row">
+                <span>Manual</span>
+                <input type="checkbox" data-control-toggle="apply_to_manual" ${config.apply_to_manual ? "checked" : ""} />
+              </label>
+            </div>
+            <div class="toolbar" style="margin-top:12px;">
+              <button class="action-btn" type="button" data-action="refresh-control-unit">Refresh</button>
+            </div>
+          `)}
+          ${card("Gate Status", table([
+            row("Current Session", stats.current_session || state.controlUnit.current_session || "UNKNOWN"),
+            row("Jordan Time", stats.current_session_jordan_time || state.controlUnit.current_session_jordan_time || "--"),
+            row("Trading Allowed", (stats.current_session_trading_allowed ?? state.controlUnit.current_session_trading_allowed) ? "Yes" : "No"),
+            row("Enabled", config.enabled ? "Yes" : "No"),
+            row("Allowed Directions", Object.entries(config.allowed_directions || {}).filter(([, enabled]) => enabled).map(([direction]) => direction).join(" | ") || "None"),
+            row("Kronos Rule", config.require_ensemble_opposite_or_tie ? "On" : "Off"),
+            row("Latest Allowed", latestDecision.allowed === undefined ? "--" : latestDecision.allowed ? "Yes" : "No"),
+            row("Latest Reason", latestDecision.reason || "--"),
+            row("Latest Relation", latestDecision.kronos_relation || "--"),
+            row("Latest Source", latestDecision.source || "--")
+          ]))}
+        </div>
+        <div class="metric-grid">
+          <div class="metric-card"><span>Decisions</span><strong>${escapeHtml(decisionSummary.total || 0)}</strong></div>
+          <div class="metric-card"><span>Allowed</span><strong>${escapeHtml(decisionSummary.allowed || 0)}</strong></div>
+          <div class="metric-card"><span>Blocked</span><strong>${escapeHtml(decisionSummary.blocked || 0)}</strong></div>
+          <div class="metric-card"><span>What-if pass</span><strong>${escapeHtml(`${whatIf.allowed || 0}/${whatIf.sample_size || 0}`)}</strong></div>
+        </div>
+        <div class="grid-3">
+          ${card("Blocked Reasons", renderCountRows(decisionSummary.by_block_reason || {}, "No blocked decisions audited yet"))}
+          ${card("Decisions By Session", renderCountRows(decisionSummary.by_session || {}, "No decisions audited yet"))}
+          ${card("Kronos Relation", renderCountRows(decisionSummary.by_relation || {}, "No decisions audited yet"))}
+        </div>
+        <div class="grid-2">
+          ${card("Execution Outcomes By Session", renderNestedCountRows(executionSummary.outcomes_by_session || {}, "No execution orders yet"))}
+          ${card("Execution Outcomes By Relation", renderNestedCountRows(executionSummary.outcomes_by_relation || {}, "No execution orders yet"))}
+        </div>
+        <div class="grid-2">
+          ${card("What-if By Session", renderCountRows(whatIf.by_session || {}, "No recent signals"))}
+          ${card("What-if By Relation", renderCountRows(whatIf.by_relation || {}, "No recent signals"))}
+        </div>
+      `;
+    }
+
+    async function loadControlUnit() {
+      const [controlUnit, controlStats] = await Promise.all([
+        fetchJson("/api/execution/control"),
+        fetchJson("/api/execution/control/stats")
+      ]);
+      state.controlUnit = { ...(controlUnit || {}), statistics: controlStats || {} };
+      if (state.activeView === "control") renderControlUnit();
+    }
+
+    async function saveControlConfig(config) {
+      const result = await fetchJson("/api/execution/control", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config)
+      });
+      state.controlUnit = {
+        status: result.status,
+        sessions: result.sessions || state.controlUnit.sessions || [],
+        session_config: result.session_config || state.controlUnit.session_config || [],
+        current_session: result.current_session,
+        current_session_jordan_time: result.current_session_jordan_time,
+        current_session_utc: result.current_session_utc,
+        current_session_trading_allowed: result.current_session_trading_allowed,
+        config: result.config || config,
+        statistics: result.statistics || {}
+      };
+      state.executionStatus = await fetchJson("/api/execution/status");
+      addLog("execution.control.updated", result.config || config);
+      renderControlUnit();
+    }
+
+    function renderExecutionDetailModal() {
+      const detail = state.executionDetail || {};
+      if (!detail.open) return "";
+      const order = detail.order || {};
+      const signal = detail.signal || (order.request_json || {}).recommendation || {};
+      const title = order.signal_id ? `Trade #${order.signal_id}` : "Trade Details";
+      const executionRows = [
+        row("Signal ID", order.signal_id),
+        row("Status", order.status),
+        row("Outcome", order.outcome || "PENDING"),
+        row("Direction", `${order.direction || "--"} ${order.size ?? ""}`),
+        row("Account", order.account_name),
+        row("Transaction ID", order.transaction_id),
+        row("Deal Reference", order.deal_reference),
+        row("Deal ID", order.deal_id),
+        row("Broker Status", order.broker_status),
+        row("Reason", order.outcome_reason || order.rejection_reason || order.error_message),
+        row("Requested", order.requested_at),
+        row("Submitted", order.submitted_at),
+        row("Confirmed", order.confirmed_at)
+      ];
+      const signalRows = [
+        row("Signal", signal.signal),
+        row("Status", signal.status),
+        row("Confidence", formatPercent(signal.confidence || 0)),
+        row("Score", formatNumber(signal.score, 2)),
+        row("Entry Type", signal.entry_type),
+        row("Entry Price", formatNumber(signal.entry_price)),
+        row("Current Price", formatNumber(signal.current_price)),
+        row("Stop Loss", formatNumber(signal.stop_loss)),
+        row("TP1", formatNumber(signal.take_profit_1)),
+        row("TP2", formatNumber(signal.take_profit_2)),
+        row("TP3", formatNumber(signal.take_profit_3)),
+        row("Risk Reward", signal.risk_reward),
+        row("Risk Status", signal.risk_status),
+        row("Risk Level", signal.risk_level),
+        row("Consensus", signal.model_consensus),
+        row("Indicator Bias", signal.indicator_bias),
+        row("Signal Time", signal.signal_time),
+        row("Expiry", signal.expiry_time)
+      ];
+      const voteRows = (signal.model_votes || []).map(vote => `
+        <tr>
+          <td>${escapeHtml(vote.model_name)}</td>
+          <td><span class="badge ${badgeClass(vote.signal)}">${escapeHtml(vote.signal)}</span></td>
+          <td>${formatPercent(vote.confidence || 0)}</td>
+          <td>${formatNumber(vote.buy_probability, 3)}</td>
+          <td>${formatNumber(vote.sell_probability, 3)}</td>
+          <td>${formatNumber(vote.hold_probability, 3)}</td>
+        </tr>
+      `).join("");
+      const rawPayload = {
+        execution_order: order,
+        signal_detail: signal,
+        broker_response: order.response_json || {},
+        broker_confirm: order.confirm_json || {}
+      };
+      return `
+        <div class="modal-backdrop">
+          <div class="modal" role="dialog" aria-modal="true" aria-label="Execution signal details" data-modal-content="execution-detail">
+            <div class="modal-header">
+              <h3>${escapeHtml(title)}</h3>
+              <button class="action-btn" type="button" data-action="close-execution-detail">Close</button>
+            </div>
+            ${detail.loading ? `<div class="muted">Loading signal details...</div>` : ""}
+            ${detail.error ? `<div class="badge danger">${escapeHtml(detail.error)}</div>` : ""}
+            <div class="detail-grid">
+              <div class="detail-panel">
+                <h4>Execution</h4>
+                ${table(executionRows)}
+              </div>
+              <div class="detail-panel">
+                <h4>Signal</h4>
+                ${table(signalRows)}
+              </div>
+            </div>
+            <div class="detail-grid" style="margin-top:12px;">
+              <div class="detail-panel">
+                <h4>Reasons</h4>
+                ${renderList(signal.reasons)}
+              </div>
+              <div class="detail-panel">
+                <h4>Blocked Reasons</h4>
+                ${renderList(signal.blocked_reasons)}
+              </div>
+            </div>
+            <div class="detail-panel" style="margin-top:12px;">
+              <h4>Model Votes</h4>
+              <table class="table">
+                <thead><tr><th>Model</th><th>Signal</th><th>Conf</th><th>Buy</th><th>Sell</th><th>Hold</th></tr></thead>
+                <tbody>${voteRows || `<tr><td colspan="6">No model votes stored for this signal.</td></tr>`}</tbody>
+              </table>
+            </div>
+            <div class="detail-panel" style="margin-top:12px;">
+              <h4>Full Payload</h4>
+              <pre>${escapeHtml(JSON.stringify(rawPayload, null, 2))}</pre>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    const HISTORY_DIRECTION_OPTIONS = [
+      { value: "", label: "All directions" },
+      { value: "BUY", label: "Buy" },
+      { value: "SELL", label: "Sell" },
+      { value: "HOLD", label: "Hold" }
+    ];
+    const HISTORY_STATUS_OPTIONS = [
+      { value: "", label: "All statuses" },
+      { value: "RECOMMENDED", label: "Recommended" },
+      { value: "WEAK_RECOMMENDATION", label: "Weak recommendation" },
+      { value: "HOLD", label: "Hold" },
+      { value: "BLOCKED_BY_RISK", label: "Blocked by risk" },
+      { value: "BLOCKED_BY_LOW_CONFIDENCE", label: "Blocked by low confidence" },
+      { value: "BLOCKED_BY_MARKET_STRUCTURE", label: "Blocked by market structure" },
+      { value: "BLOCKED_BY_SYSTEM_HEALTH", label: "Blocked by system health" },
+      { value: "BLOCKED_BY_NEWS", label: "Blocked by news" }
+    ];
+    const HISTORY_OUTCOME_OPTIONS = [
+      { value: "", label: "All outcomes" },
+      { value: "PENDING", label: "Pending" },
+      { value: "NO_TRADE", label: "No trade" },
+      { value: "ENTRY_TRIGGERED", label: "Entry triggered" },
+      { value: "MISSED_ENTRY", label: "Missed entry" },
+      { value: "EXPIRED", label: "Expired" },
+      { value: "PARTIAL_TP", label: "Partial TP" },
+      { value: "WIN", label: "Win" },
+      { value: "LOSS", label: "Loss" }
+    ];
+    const HISTORY_PAGE_SIZE_OPTIONS = [10, 25, 50, 100].map(n => ({ value: String(n), label: `${n} / page` }));
+
+    function historyFilterSelect(key, label, options, current) {
+      const opts = options
+        .map(o => `<option value="${escapeHtml(o.value)}" ${o.value === String(current ?? "") ? "selected" : ""}>${escapeHtml(o.label)}</option>`)
+        .join("");
+      return `<label class="field">${escapeHtml(label)}<select data-history-filter="${key}">${opts}</select></label>`;
+    }
+
+    function renderHistory() {
+      const items = state.history.items || [];
+      const f = state.historyFilters;
+      const total = Number(state.history.total || 0);
+      const page = Number(state.history.page || f.page || 1);
+      const pageSize = Number(state.history.page_size || f.page_size || 25);
+      const totalPages = Math.max(1, Math.ceil(total / pageSize));
+      const firstRow = total === 0 ? 0 : (page - 1) * pageSize + 1;
+      const lastRow = Math.min(total, page * pageSize);
+
+      const rows = items.map(item => `
+        <tr>
+          <td>${escapeHtml(item.id)}</td>
+          <td>${escapeHtml(item.signal_time)}</td>
+          <td><span class="badge ${badgeClass(item.signal)}">${escapeHtml(item.signal)}</span></td>
+          <td><span class="badge ${badgeClass(item.status)}">${escapeHtml(item.status)}</span></td>
+          <td>${formatPercent(item.confidence)}</td>
+          <td>${escapeHtml(item.entry_price ?? "--")}</td>
+          <td>${escapeHtml(item.stop_loss ?? "--")}</td>
+          <td>${escapeHtml(item.take_profit_1 ?? "--")}</td>
+          <td>${escapeHtml(item.risk_reward ?? "--")}</td>
+          <td>${escapeHtml(item.risk_level ?? "--")}</td>
+          <td><span class="badge ${badgeClass(item.outcome_status)}">${escapeHtml(item.outcome_status ?? "--")}</span></td>
+        </tr>
+      `).join("");
+
+      const filterBar = `
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; margin-bottom:12px;">
+          ${historyFilterSelect("signal", "Direction", HISTORY_DIRECTION_OPTIONS, f.signal)}
+          ${historyFilterSelect("status", "Status", HISTORY_STATUS_OPTIONS, f.status)}
+          ${historyFilterSelect("outcome", "Outcome", HISTORY_OUTCOME_OPTIONS, f.outcome)}
+          <label class="field">From<input type="datetime-local" data-history-filter="from_time" value="${escapeHtml(f.from_time ?? "")}"></label>
+          <label class="field">To<input type="datetime-local" data-history-filter="to_time" value="${escapeHtml(f.to_time ?? "")}"></label>
+          ${historyFilterSelect("page_size", "Rows", HISTORY_PAGE_SIZE_OPTIONS, String(f.page_size))}
+        </div>
+        <div class="toolbar">
+          <button class="action-btn" type="button" data-action="refresh-history">Refresh</button>
+          <button class="action-btn" type="button" data-action="clear-history-filters">Clear filters</button>
+        </div>`;
+
+      const pagination = `
+        <div class="toolbar" style="justify-content:space-between; margin-top:12px;">
+          <span style="color:#51665e; font-size:13px;">${total === 0 ? "No matching signals" : `Showing ${firstRow}-${lastRow} of ${total} — page ${page} of ${totalPages}`}</span>
+          <div style="display:flex; gap:8px;">
+            <button class="action-btn" type="button" data-action="history-prev" ${page <= 1 ? "disabled" : ""}>Prev</button>
+            <button class="action-btn" type="button" data-action="history-next" ${page >= totalPages ? "disabled" : ""}>Next</button>
+          </div>
+        </div>`;
+
+      document.getElementById("view-history").innerHTML = card("Signal History", `
+        ${filterBar}
+        <table class="table">
+          <thead><tr><th>ID</th><th>Time</th><th>Signal</th><th>Status</th><th>Confidence</th><th>Entry</th><th>SL</th><th>TP1</th><th>R:R</th><th>Risk</th><th>Outcome</th></tr></thead>
+          <tbody>${rows || `<tr><td colspan="11">No signals</td></tr>`}</tbody>
+        </table>
+        ${pagination}
+      `);
+    }
+
+    async function loadHistory(resetPage = false) {
+      const f = state.historyFilters;
+      if (resetPage) f.page = 1;
+      const params = new URLSearchParams();
+      params.set("page", String(Math.max(1, f.page || 1)));
+      params.set("page_size", String(f.page_size || 25));
+      if (f.signal) params.set("signal", f.signal);
+      if (f.status) params.set("status", f.status);
+      if (f.outcome) params.set("outcome", f.outcome);
+      if (f.from_time) params.set("from_time", new Date(f.from_time).toISOString());
+      if (f.to_time) params.set("to_time", new Date(f.to_time).toISOString());
+      state.history = await fetchJson(`/api/signals/history?${params.toString()}`);
+      renderHistory();
+    }
+
+    async function openExecutionDetail(signalId, orderKey) {
+      const order = (state.executionOrders.items || []).find(item =>
+        String(item.idempotency_key || "") === String(orderKey || "") ||
+        String(item.signal_id || "") === String(signalId || "")
+      ) || null;
+      state.executionDetail = {
+        open: true,
+        loading: true,
+        order,
+        signal: (order?.request_json || {}).recommendation || null,
+        error: ""
+      };
+      renderExecution();
+      try {
+        state.executionDetail.signal = await fetchJson(`/api/signals/${encodeURIComponent(signalId)}`);
+      } catch (err) {
+        state.executionDetail.error = `Signal detail fetch failed: ${String(err)}`;
+      } finally {
+        state.executionDetail.loading = false;
+        renderExecution();
+      }
+    }
+
+    function closeExecutionDetail() {
+      state.executionDetail = { open: false, loading: false, order: null, signal: null, error: "" };
+      renderExecution();
+    }
+
+    function renderModels() {
+      const artifacts = state.artifacts.models || {};
+      const artifactRows = Object.entries(artifacts).map(([name, item]) =>
+        row(name, `${item.status || "--"} ${item.kind ? `(${item.kind})` : ""} ${item.path || ""}`)
+      );
+      const metrics = state.performance.metrics || {};
+      const metricRows = Object.entries(metrics).map(([name, item]) =>
+        row(name, `win_rate=${formatPercent(item.win_rate)} profit_factor=${formatNumber(item.profit_factor, 2)} drift=${formatNumber(item.drift_score, 2)}`)
+      );
+
+      document.getElementById("view-models").innerHTML = `
+        <div class="grid-2">
+          ${card("Latest Votes", renderVotesTable(state.votes))}
+          ${card("Artifact Status", table(artifactRows.length ? artifactRows : [row("Status", "No artifacts")]))}
+        </div>
+        ${card("Dynamic Weights", renderWeightsTable(state.weights.details || {}))}
+        ${card("Performance", table(metricRows.length ? metricRows : [row("Status", "No model outcomes recorded")]))}
+      `;
+    }
+
+    function renderIndicators() {
+      const indicators = state.indicators;
+      document.getElementById("view-indicators").innerHTML = `
+        <div class="grid-2">
+          ${card("Indicator Snapshot", renderIndicatorSummary(indicators))}
+          ${card("Levels", table([
+            row("Nearest Support", formatNumber(indicators.nearest_support)),
+            row("Nearest Resistance", formatNumber(indicators.nearest_resistance)),
+            row("ATR", formatNumber(indicators.atr)),
+            row("Volatility", indicators.volatility_status),
+            row("Structure", indicators.structure_bias),
+            row("Session", indicators.session_name)
+          ]))}
+        </div>
+        ${card("Raw Indicators", `<pre>${escapeHtml(JSON.stringify(indicators.raw_json || {}, null, 2))}</pre>`)}
+      `;
+    }
+
+    function renderRisk() {
+      const risk = state.risk;
+      document.getElementById("view-risk").innerHTML = `
+        <div class="grid-2">
+          ${card("Risk Status", renderRiskSummary(risk))}
+          ${card("Risk Limits", table([
+            row("Spread", `${risk.spread ?? "--"} / ${risk.max_allowed_spread ?? "--"}`),
+            row("Spread Status", risk.spread_status),
+            row("Position Size", risk.position_size_status),
+            row("News", risk.news_status),
+            row("Volatility", risk.volatility_status)
+          ]))}
+        </div>
+        ${card("Blocked Reasons", renderList(risk.blocked_reasons))}
+      `;
+    }
+
+    function metricCard(title, value, formatter = null) {
+      const display = formatter ? formatter(value) : (value ?? "0");
+      return `<div class="metric-card"><span class="muted">${escapeHtml(title)}</span><strong>${escapeHtml(display)}</strong></div>`;
+    }
+
+    function reportLink(path) {
+      if (!path) return `<span class="muted">Report will appear after a completed run</span>`;
+      return `<a href="/api/report-file?path=${encodeURIComponent(path)}" target="_blank" rel="noreferrer">${escapeHtml(path)}</a>`;
+    }
+
+    function renderBacktestMetrics(backtest) {
+      return `
+        <div class="metric-grid">
+          ${metricCard("Win Rate", backtest.win_rate, formatPercent)}
+          ${metricCard("Profit Factor", backtest.profit_factor, value => formatNumber(value, 2))}
+          ${metricCard("Max Drawdown", backtest.max_drawdown, value => formatNumber(value, 2))}
+          ${metricCard("Number of Trades", backtest.number_of_trades || 0)}
+          ${metricCard("Average R:R", backtest.average_rr, value => formatNumber(value, 2))}
+          ${metricCard("BUY Precision", backtest.buy_precision || 0, formatPercent)}
+          ${metricCard("SELL Precision", backtest.sell_precision || 0, formatPercent)}
+          ${metricCard("Blocked Signals", backtest.blocked_signals || 0)}
+        </div>
+      `;
+    }
+
+    function renderBacktestHistory(items) {
+      const rows = (items || []).map(item => `
+        <tr>
+          <td><button class="action-btn" type="button" data-action="select-backtest" data-run-id="${escapeHtml(item.run_id)}">${escapeHtml(item.run_id)}</button></td>
+          <td>${escapeHtml(item.run_type)}</td>
+          <td><span class="badge ${badgeClass(item.status)}">${escapeHtml(item.status)}</span></td>
+          <td>${escapeHtml(item.instrument)} ${escapeHtml(item.timeframe)}</td>
+          <td>${formatPercent(item.win_rate || 0)}</td>
+          <td>${formatNumber(item.profit_factor || 0, 2)}</td>
+          <td>${escapeHtml(item.completed_at || item.started_at || "")}</td>
+        </tr>
+      `).join("");
+      return `
+        <table class="table">
+          <thead><tr><th>Run</th><th>Type</th><th>Status</th><th>Market</th><th>Win</th><th>PF</th><th>Completed</th></tr></thead>
+          <tbody>${rows || `<tr><td colspan="7">No backtest has been run yet. Click "Run Walk-Forward Backtest" to generate results.</td></tr>`}</tbody>
+        </table>
+      `;
+    }
+
+    function renderBacktestTrades(items) {
+      const rows = (items || []).slice(0, 80).map(item => `
+        <tr>
+          <td>${escapeHtml(item.signal_time || item.time || "")}</td>
+          <td><span class="badge ${badgeClass(item.signal_direction || item.signal)}">${escapeHtml(item.signal_direction || item.signal)}</span></td>
+          <td>${formatPrice(item.entry_price || item.entry)}</td>
+          <td>${formatPrice(item.stop_loss)}</td>
+          <td>${formatPrice(item.take_profit_1 || item.tp1)}</td>
+          <td><span class="badge ${badgeClass(item.outcome)}">${escapeHtml(item.outcome)}</span></td>
+          <td>${formatNumber(item.pnl ?? item.realized_rr ?? 0, 2)}</td>
+        </tr>
+      `).join("");
+      return `
+        <table class="table">
+          <thead><tr><th>Time</th><th>Signal</th><th>Entry</th><th>SL</th><th>TP1</th><th>Outcome</th><th>PnL/RR</th></tr></thead>
+          <tbody>${rows || `<tr><td colspan="7">Trades will appear after a completed run with executable signals.</td></tr>`}</tbody>
+        </table>
+      `;
+    }
+
+    function renderBacktestFolds(items) {
+      const rows = (items || []).map(item => {
+        const metrics = item.metrics_json || {};
+        return `
+          <tr>
+            <td>${escapeHtml(item.fold_number)}</td>
+            <td>${escapeHtml(item.train_start || "")}</td>
+            <td>${escapeHtml(item.test_start || "")}</td>
+            <td>${escapeHtml(item.test_end || "")}</td>
+            <td>${escapeHtml(metrics.total_signals ?? metrics.number_of_trades ?? 0)}</td>
+            <td>${formatPercent(metrics.win_rate || 0)}</td>
+            <td>${formatNumber(metrics.profit_factor || 0, 2)}</td>
+          </tr>
+        `;
+      }).join("");
+      return `
+        <table class="table">
+          <thead><tr><th>Fold</th><th>Train Start</th><th>Test Start</th><th>Test End</th><th>Trades</th><th>Win</th><th>PF</th></tr></thead>
+          <tbody>${rows || `<tr><td colspan="7">Fold results appear for walk-forward runs.</td></tr>`}</tbody>
+        </table>
+      `;
+    }
+
+    function renderBacktestProgress(status) {
+      const item = status || {};
+      const progress = Math.max(0, Math.min(100, Number(item.progress || 0)));
+      const active = item.active || item.status === "RUNNING";
+      const elapsed = item.elapsed_seconds == null ? "--" : `${item.elapsed_seconds}s`;
+      const completedAt = item.completed_at || "--";
+      const barColor = active ? "#1c7c54" : item.status === "FAILED" ? "#b42318" : "#5f7f73";
+      return `
+        <div class="detail-panel">
+          <div class="toolbar" style="justify-content:space-between;">
+            <div>
+              <strong>${escapeHtml(item.run_id || "No active backtest")}</strong>
+              <div class="muted">${escapeHtml(item.message || "Backtest worker is idle.")}</div>
+            </div>
+            <span class="badge ${badgeClass(item.status || "IDLE")}">${escapeHtml(item.status || "IDLE")}</span>
+          </div>
+          <div style="height:10px; background:#e6efea; border-radius:999px; overflow:hidden; margin:12px 0;">
+            <div style="height:100%; width:${progress}%; background:${barColor};"></div>
+          </div>
+          <div class="grid-3">
+            ${metricCard("Progress", `${progress}%`)}
+            ${metricCard("Elapsed", elapsed)}
+            ${metricCard("Finished", completedAt)}
+          </div>
+          ${active ? `<div class="muted">This panel refreshes automatically while a backtest is running.</div>` : ""}
+        </div>
+      `;
+    }
+
+    function renderBacktestModal() {
+      if (!state.showBacktestModal) return "";
+      const today = new Date().toISOString().slice(0, 10);
+      return `
+        <div class="modal-backdrop">
+          <div class="modal">
+            <div class="modal-header">
+              <h3>Run Backtest</h3>
+              <button class="action-btn" type="button" data-action="close-backtest-modal">Close</button>
+            </div>
+            <form class="stack" data-form="backtest-run">
+              <div class="grid-2">
+                <label class="field">Instrument<input name="instrument" value="XAUUSD" /></label>
+                <label class="field">Timeframe
+                  <select name="timeframe">
+                    <option selected>5m</option>
+                    <option>1m</option>
+                    <option>15m</option>
+                    <option>1h</option>
+                  </select>
+                </label>
+                <label class="field">Start Date<input name="start_date" type="date" value="2025-01-01" /></label>
+                <label class="field">End Date<input name="end_date" type="date" value="${escapeHtml(today)}" /></label>
+                <label class="field">Run Type
+                  <select name="run_type">
+                    <option selected>WALK_FORWARD</option>
+                    <option>BACKTEST</option>
+                  </select>
+                </label>
+                <label class="field">Model Mode
+                  <select name="model_mode">
+                    <option selected>MOCK_FOR_TEST_ONLY</option>
+                    <option>STORED_PREDICTIONS</option>
+                    <option>LIVE_INFERENCE</option>
+                  </select>
+                </label>
+                <label class="field">Risk Percent<input name="risk_percent" type="number" step="0.1" value="1.0" /></label>
+                <label class="field">Initial Balance<input name="initial_balance" type="number" step="100" value="10000" /></label>
+              </div>
+              <button class="action-btn primary" type="submit">Run Walk-Forward Backtest</button>
+            </form>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderBacktesting() {
+      const backtest = state.backtest || {};
+      const hasRun = backtest.status && backtest.status !== "NO_BACKTEST_RUN";
+      document.getElementById("view-backtesting").innerHTML = `
+        <div class="toolbar">
+          <button class="action-btn primary" type="button" data-action="open-backtest-modal">Run Walk-Forward Backtest</button>
+          <button class="action-btn" type="button" data-action="refresh-backtests">Refresh Backtests</button>
+          <span class="muted">${escapeHtml(state.backtestRunStatus || backtest.message || "")}</span>
+        </div>
+        ${card("Backtest Progress", renderBacktestProgress(state.backtestStatus))}
+        ${hasRun ? `
+          ${card("Latest Backtest Summary", `
+            ${renderBacktestMetrics(backtest)}
+            ${table([
+              row("Run ID", backtest.run_id),
+              row("Type", backtest.run_type),
+              row("Model Mode", backtest.model_mode || backtest.config?.model_mode || "MOCK_FOR_TEST_ONLY"),
+              row("Report", reportLink(backtest.report_path), true)
+            ])}
+          `)}
+          <div class="grid-2">
+            ${card("Walk-Forward Summary", renderBacktestFolds(state.backtestFolds.items || []))}
+            ${card("Backtest Run History", renderBacktestHistory(state.backtests.items || []))}
+          </div>
+          ${card("Trades Table", renderBacktestTrades(state.backtestTrades.items || []))}
+        ` : `
+          ${card("Latest Backtest Summary", `<div class="muted">No backtest has been run yet. Click "Run Walk-Forward Backtest" to generate results.</div>`)}
+          ${card("Backtest Run History", renderBacktestHistory(state.backtests.items || []))}
+        `}
+        ${renderBacktestModal()}
+      `;
+    }
+
+    function renderReplay() {
+      const id = state.latest.id || state.history.items?.[0]?.id || 1;
+      document.getElementById("view-replay").innerHTML = `
+        <div class="toolbar">
+          <button class="action-btn" type="button" data-action="load-replay" data-signal-id="${escapeHtml(id)}">Load Latest Replay</button>
+        </div>
+        <div class="grid-2">
+          ${card("Replay Signal", renderReplaySignal(state.replay.signal || state.latest))}
+          ${card("Replay Outcome", table([
+            row("Outcome", state.replay.outcome?.outcome || "Pending validation"),
+            row("Exit Reason", state.replay.outcome?.exit_reason || "No final outcome yet"),
+            row("R:R", state.replay.outcome?.realized_rr ?? "--"),
+            row("Ambiguous Candle", state.replay.outcome?.ambiguous_candle ? "Yes" : "No"),
+            row("Timeline", (state.replay.outcome?.raw_json?.timeline || state.replay.signal?.validation_timeline || []).map(item => item.event).join(" -> ") || "No validation timeline yet")
+          ]))}
+        </div>
+        <div class="grid-3">
+          ${card("Regime", renderRegimeSummary(state.replay.market_regime || state.regime))}
+          ${card("Timeframes", renderTimeframeSummary(state.replay.multi_timeframe || state.timeframes))}
+          ${card("Entry Plans", renderEntryPlans(state.replay.entry_plans || []))}
+        </div>
+      `;
+    }
+
+    function renderOptimization() {
+      const runs = state.optimizationRuns.items || [];
+      const runRows = runs.slice(0, 8).map(item => `
+        <tr>
+          <td>${escapeHtml(item.run_id || item.id)}</td>
+          <td><span class="badge ${badgeClass(item.status)}">${escapeHtml(item.status)}</span></td>
+          <td>${escapeHtml(item.best_profile_id || "")}</td>
+          <td>${escapeHtml(item.completed_at || item.started_at || "")}</td>
+        </tr>
+      `).join("");
+      document.getElementById("view-optimization").innerHTML = `
+        <div class="grid-2">
+          ${card("Active Profile", table([
+            row("Name", state.activeProfile.name || "default"),
+            row("Version", state.activeProfile.version || 1),
+            row("Parameters", `<pre>${escapeHtml(JSON.stringify(state.activeProfile.parameters || {}, null, 2))}</pre>`, true)
+          ]))}
+          ${card("Optimization", `
+            <div class="muted">Profiles are proposed only; manual activation is required.</div>
+            <button class="action-btn" type="button" data-action="run-optimization">Run Small Optimization</button>
+            <button class="action-btn" type="button" data-action="rollback-profile">Rollback Profile</button>
+          `)}
+        </div>
+        ${card("Optimization Run History", `
+          <table class="table">
+            <thead><tr><th>Run</th><th>Status</th><th>Best Profile</th><th>Completed</th></tr></thead>
+            <tbody>${runRows || `<tr><td colspan="4">No optimization run has been executed yet. Run threshold optimization to generate candidate profiles.</td></tr>`}</tbody>
+          </table>
+        `)}
+      `;
+    }
+
+    function renderHealth() {
+      document.getElementById("view-health").innerHTML = `
+        <div class="grid-2">
+          ${card("System Health", table([
+            row("Overall", state.health.overall_status || "UNKNOWN"),
+            row("Last Candle", state.health.last_candle_time || "Waiting for candles"),
+            row("Trading", state.health.overall_status === "CRITICAL" ? "Blocked" : "Allowed"),
+            row("Issues", (state.health.failed_components || []).join(" | ") || "No critical issues"),
+            row("Categories", Object.entries(state.health.categories || {}).map(([k, v]) => `${k}: ${v}`).join(" | ") || "No category data"),
+            row("Persisted", state.health.persisted_snapshot?.message || state.health.persisted_snapshot?.status || "No persisted health snapshot yet. Runtime health will appear after system starts collecting metrics.")
+          ]))}
+          ${card("Health Details", `<pre>${escapeHtml(JSON.stringify(state.health.details || {}, null, 2))}</pre>`)}
+        </div>
+      `;
+    }
+
+    function renderPaper() {
+      const id = state.latest.id || state.history.items?.[0]?.id || 1;
+      document.getElementById("view-paper").innerHTML = `
+        <div class="grid-2">
+          ${card("Record Outcome", `
+            <form class="stack" data-form="paper-outcome">
+              <label class="field">Recommendation ID<input name="recommendation_id" value="${escapeHtml(id)}" /></label>
+              <label class="field">Outcome
+                <select name="outcome">
+                  <option>WIN</option>
+                  <option>LOSS</option>
+                  <option>PARTIAL_TP</option>
+                  <option>BREAKEVEN</option>
+                  <option>MISSED_ENTRY</option>
+                  <option>EXPIRED</option>
+                </select>
+              </label>
+              <label class="field">Realized R:R<input name="realized_rr" type="number" step="0.01" value="0" /></label>
+              <div class="toolbar">
+                <label><input name="entry_triggered" type="checkbox" checked /> Entry triggered</label>
+                <label><input name="hit_tp1" type="checkbox" /> TP1</label>
+                <label><input name="hit_tp2" type="checkbox" /> TP2</label>
+                <label><input name="hit_tp3" type="checkbox" /> TP3</label>
+                <label><input name="hit_sl" type="checkbox" /> SL</label>
+              </div>
+              <button class="action-btn primary" type="submit">Save Outcome</button>
+            </form>
+          `)}
+          ${card("Validation Outcomes", renderOutcomesTable(state.outcomes.items || []))}
+        </div>
+      `;
+    }
+
+    function renderSettings() {
+      document.getElementById("view-settings").innerHTML = `
+        <div class="grid-2">
+          ${card("Model Weights", `
+            <form class="stack" data-form="model-weights">
+              <label class="field">Weights JSON<textarea name="payload">${escapeHtml(JSON.stringify(state.summary.dynamic_model_weights || {}, null, 2))}</textarea></label>
+              <button class="action-btn primary" type="submit">Save Weights</button>
+            </form>
+          `)}
+          ${card("Risk Limits", `
+            <form class="stack" data-form="risk-limits">
+              <label class="field">Limits JSON<textarea name="payload">${escapeHtml(JSON.stringify({
+                minimum_rr: 1.5,
+                max_spread: state.risk.max_allowed_spread ?? 0.4,
+                news_block_before_minutes: 30,
+                news_block_after_minutes: 15
+              }, null, 2))}</textarea></label>
+              <button class="action-btn primary" type="submit">Save Limits</button>
+            </form>
+          `)}
+        </div>
+      `;
+    }
+
+    function renderLogs() {
+      const entries = state.logs.map(item => `
+        <div class="log-item">
+          <strong>${escapeHtml(item.at)}</strong> ${escapeHtml(item.event)}
+          <pre>${escapeHtml(JSON.stringify(item.data, null, 2))}</pre>
+        </div>
+      `).join("");
+      document.getElementById("view-logs").innerHTML = card("Event Log", `<div class="log-list">${entries || "No events"}</div>`);
+    }
+
+    function renderVotesList(votes) {
+      return (votes || []).map(v => {
+        const cls = badgeClass(v.signal);
+        return `<div style="margin-bottom:8px;"><span class="badge ${cls}">${escapeHtml(v.signal)}</span> ${escapeHtml(v.model_name)} - ${formatPercent(v.confidence)}</div>`;
+      }).join("") || "No votes";
+    }
+
+    function renderVotesTable(votes) {
+      const rows = (votes || []).map(v => `
+        <tr>
+          <td>${escapeHtml(v.model_name)}</td>
+          <td><span class="badge ${badgeClass(v.signal)}">${escapeHtml(v.signal)}</span></td>
+          <td>${formatPercent(v.confidence)}</td>
+          <td>${formatNumber(v.buy_probability, 3)}</td>
+          <td>${formatNumber(v.sell_probability, 3)}</td>
+          <td>${formatNumber(v.hold_probability, 3)}</td>
+        </tr>
+      `).join("");
+      return `
+        <table class="table">
+          <thead><tr><th>Model</th><th>Vote</th><th>Conf</th><th>Buy</th><th>Sell</th><th>Hold</th></tr></thead>
+          <tbody>${rows || `<tr><td colspan="6">No votes</td></tr>`}</tbody>
+        </table>
+      `;
+    }
+
+    function renderIndicatorSummary(indicators) {
+      return [
+        `<div>Trend: <strong>${escapeHtml(indicators?.trend?.bias || "--")}</strong> (${Math.round(indicators?.trend?.score || 0)}/100)</div>`,
+        `<div>Momentum: <strong>${escapeHtml(indicators?.momentum?.bias || "--")}</strong> (${Math.round(indicators?.momentum?.score || 0)}/100)</div>`,
+        `<div>Volatility: <strong>${escapeHtml(indicators?.volatility_status || "--")}</strong> ATR ${escapeHtml(formatNumber(indicators?.atr))}</div>`,
+        `<div>Structure: <strong>${escapeHtml(indicators?.structure_bias || "--")}</strong></div>`,
+        `<div>Session: <strong>${escapeHtml(indicators?.session_name || "--")}</strong></div>`,
+        `<div>News: <strong>${escapeHtml(indicators?.news_status || "--")}</strong></div>`
+      ].join("");
+    }
+
+    function renderSMCSummary(smc) {
+      if (!smc) return "<div>No SMC data available</div>";
+      const fvgs = (smc.active_fvgs || []).map(f => `${f.timeframe} ${f.direction}`).join(" | ");
+      const sweeps = (smc.recent_sweeps || []).map(s => `${s.direction} at ${s.price.toFixed(2)}`).join(" | ");
+      const ifvgs = (smc.active_ifvgs || []).map(i => `${i.timeframe} ${i.direction}`).join(" | ");
+      
+      return [
+        `<div>SMC Valid: <strong>${smc.smc_setup_valid ? '<span class="status-buy">YES</span>' : 'NO'}</strong></div>`,
+        `<div>Direction: <strong>${escapeHtml(smc.setup_direction || "--")}</strong></div>`,
+        `<div>PO3 Window: <strong>${smc.is_po3_time ? '<span class="status-buy">ACTIVE</span>' : 'INACTIVE'}</strong></div>`,
+        `<div>Active FVGs: <strong>${escapeHtml(fvgs || "None")}</strong></div>`,
+        `<div>Recent Sweeps: <strong>${escapeHtml(sweeps || "None")}</strong></div>`,
+        `<div>Active IFVGs: <strong>${escapeHtml(ifvgs || "None")}</strong></div>`,
+        `<div>Draw on Liquidity: <strong>${smc.draw_on_liquidity ? smc.draw_on_liquidity.toFixed(2) : "--"}</strong></div>`
+      ].join("");
+    }
+
+    function renderRiskSummary(risk) {
+      return [
+        `<div>Spread: <strong>${escapeHtml(risk.spread_status || "--")}</strong> (${escapeHtml(risk.spread ?? "--")})</div>`,
+        `<div>Risk status: <strong>${escapeHtml(risk.risk_status || "--")}</strong></div>`,
+        `<div>R:R: <strong>${escapeHtml(risk.risk_reward ?? "--")}</strong></div>`,
+        `<div>Volatility: <strong>${escapeHtml(risk.volatility_status || "--")}</strong></div>`,
+        `<div>News: <strong>${escapeHtml(risk.news_status || "--")}</strong></div>`,
+        `<div>Blocked reasons: <strong>${escapeHtml((risk.blocked_reasons || []).join(" | ") || "None")}</strong></div>`
+      ].join("");
+    }
+
+    function renderOutcomesTable(items) {
+      const rows = (items || []).map(item => `
+        <tr>
+          <td>${escapeHtml(item.recommendation_id)}</td>
+          <td><span class="badge ${badgeClass(item.outcome)}">${escapeHtml(item.outcome)}</span></td>
+          <td>${item.entry_triggered ? "Yes" : "No"}</td>
+          <td>${escapeHtml(item.realized_rr ?? "--")}</td>
+          <td>${escapeHtml(item.max_favorable_move ?? "--")}</td>
+          <td>${escapeHtml(item.max_adverse_move ?? "--")}</td>
+          <td>${escapeHtml(item.closed_at ?? "--")}</td>
+        </tr>
+      `).join("");
+      return `
+        <table class="table">
+          <thead><tr><th>ID</th><th>Outcome</th><th>Entry</th><th>R:R</th><th>Fav</th><th>Adv</th><th>Closed</th></tr></thead>
+          <tbody>${rows || `<tr><td colspan="7">No outcomes validated yet</td></tr>`}</tbody>
+        </table>
+      `;
+    }
+
+    function renderRegimeSummary(regime) {
+      const tags = Array.isArray(regime?.tags) ? regime.tags.join(" | ") : "";
+      const reasons = Array.isArray(regime?.reasoning) ? regime.reasoning.join(" | ") : "";
+      return table([
+        row("Primary", regime?.primary_regime || "Waiting for regime calculation"),
+        row("Confidence", formatPercent(regime?.confidence || 0)),
+        row("Mode", regime?.strategy_mode || "Balanced"),
+        row("Tags", tags || "No tags yet"),
+        row("Reason", reasons || "Waiting for latest signal context")
+      ]);
+    }
+
+    function renderTimeframeSummary(summary) {
+      const frames = summary?.timeframes || {};
+      const rows = Object.entries(frames).map(([timeframe, item]) =>
+        row(timeframe, `${item.bias || "--"} (${Math.round(item.score || 0)}) - ${item.role || ""}`)
+      );
+      return table([
+        row("Status", summary?.status || "INSUFFICIENT_DATA"),
+        row("Alignment", `${Math.round(summary?.alignment_score || 0)}/100`),
+        ...rows,
+        row("Conflicts", (summary?.blocked_reasons || []).join(" | ") || "None")
+      ]);
+    }
+
+    function renderNewsRisk(news) {
+      return table([
+        row("Status", news?.status || "SAFE"),
+        row("Reason", news?.reason || "No news source configured"),
+        row("Event", news?.event_name || "No high-impact event"),
+        row("Minutes To", news?.minutes_to_event ?? "--"),
+        row("Confidence Multiplier", news?.confidence_multiplier ?? 1),
+        row("Provider", news?.provider_mode || "manual")
+      ]);
+    }
+
+    function renderWeightsTable(details) {
+      const rows = Object.entries(details || {}).map(([name, item]) => `
+        <tr>
+          <td>${escapeHtml(name)}</td>
+          <td>${formatNumber(item.base_weight, 3)}</td>
+          <td>${formatNumber(item.effective_weight, 3)}</td>
+          <td>${escapeHtml(item.adjustment_reason?.reason || "Base weight")}</td>
+        </tr>
+      `).join("");
+      return `
+        <table class="table">
+          <thead><tr><th>Model</th><th>Base</th><th>Effective</th><th>Reason</th></tr></thead>
+          <tbody>${rows || `<tr><td colspan="4">Using default model weights. No adaptive updates yet.</td></tr>`}</tbody>
+        </table>
+      `;
+    }
+
+    function renderReplaySignal(signal) {
+      return table([
+        row("ID", signal?.id || "--"),
+        row("Signal", signal?.signal || "--"),
+        row("Status", signal?.status || "--"),
+        row("Confidence", formatPercent(signal?.confidence || 0)),
+        row("Entry", formatNumber(signal?.entry_price)),
+        row("SL", formatNumber(signal?.stop_loss)),
+        row("TP1", formatNumber(signal?.take_profit_1)),
+        row("Blocked", (signal?.blocked_reasons || []).join(" | ") || "None")
+        ,row("Strategy Version", signal?.strategy_version || "strategy_v1")
+        ,row("Threshold Profile", signal?.threshold_profile_id || "default")
+      ]);
+    }
+
+    function renderEntryPlans(plans) {
+      const rows = (plans || []).slice(0, 6).map(plan => `
+        <tr>
+          <td>${escapeHtml(plan.entry_type)}</td>
+          <td>${formatNumber(plan.entry_price)}</td>
+          <td>${formatNumber(plan.risk_reward, 2)}</td>
+          <td>${Math.round(plan.final_plan_score || plan.plan_score || 0)}</td>
+          <td>${plan.selected ? "Selected" : escapeHtml(plan.rejection_reason || "Rejected by score")}</td>
+        </tr>
+      `).join("");
+      return `
+        <table class="table">
+          <thead><tr><th>Type</th><th>Entry</th><th>R:R</th><th>Score</th><th>Status</th></tr></thead>
+          <tbody>${rows || `<tr><td colspan="5">No directional entry plans yet</td></tr>`}</tbody>
+        </table>
+      `;
+    }
+
+    function renderRecentOutcomes(items) {
+      const recent = (items || []).slice(0, 5);
+      if (!recent.length) return `<span class="muted">Pending validation</span>`;
+      return recent.map(item => `
+        <div style="margin-bottom:8px;">
+          <span class="badge ${badgeClass(item.outcome)}">${escapeHtml(item.outcome)}</span>
+          #${escapeHtml(item.recommendation_id)} ${escapeHtml(item.exit_reason || item.raw_json?.exit_reason || "")}
+        </div>
+      `).join("");
+    }
+
+    function renderList(values) {
+      const list = Array.isArray(values) ? values : [];
+      return list.length ? `<ul>${list.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : `<span class="muted">None</span>`;
+    }
+
+    function renderActiveView() {
+      if (state.activeView === "dashboard") renderDashboard();
+      if (state.activeView === "live") renderLive();
+      if (state.activeView === "execution") renderExecution();
+      if (state.activeView === "control") renderControlUnit();
+      if (state.activeView === "history") renderHistory();
+      if (state.activeView === "models") renderModels();
+      if (state.activeView === "indicators") renderIndicators();
+      if (state.activeView === "risk") renderRisk();
+      if (state.activeView === "backtesting") renderBacktesting();
+      if (state.activeView === "replay") renderReplay();
+      if (state.activeView === "optimization") renderOptimization();
+      if (state.activeView === "health") renderHealth();
+      if (state.activeView === "paper") renderPaper();
+      if (state.activeView === "settings") renderSettings();
+      if (state.activeView === "logs") renderLogs();
+    }
+
+    async function refreshAll() {
+      await loadCoreData();
+      await loadSupplementalData();
+      renderActiveView();
+    }
+
+    async function runCycle(button) {
+      if (button) button.disabled = true;
+      try {
+        const payload = await fetchJson("/api/signals/run", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: "{}"
+        });
+        addLog("cycle.manual", payload.recommendation || {});
+        await refreshAll();
+      } finally {
+        if (button) button.disabled = false;
+      }
+    }
+
+    function setActiveView(view) {
+      state.activeView = view;
+      document.querySelectorAll(".nav-item").forEach(item => item.classList.toggle("active", item.dataset.view === view));
+      viewIds.forEach(id => document.getElementById(`view-${id}`).classList.toggle("active", id === view));
+      renderActiveView();
+    }
+
+    async function handleFormSubmit(form) {
+      if (form.dataset.form === "paper-outcome") {
+        const data = new FormData(form);
+        const payload = {
+          recommendation_id: Number(data.get("recommendation_id")),
+          outcome: {
+            outcome: data.get("outcome"),
+            realized_rr: Number(data.get("realized_rr")),
+            entry_triggered: form.elements.entry_triggered.checked,
+            hit_tp1: form.elements.hit_tp1.checked,
+            hit_tp2: form.elements.hit_tp2.checked,
+            hit_tp3: form.elements.hit_tp3.checked,
+            hit_sl: form.elements.hit_sl.checked
+          }
+        };
+        const result = await fetchJson("/api/paper/outcome", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        addLog("paper.outcome.saved", result);
+        await refreshAll();
+      }
+
+      if (form.dataset.form === "model-weights" || form.dataset.form === "risk-limits") {
+        const payload = JSON.parse(new FormData(form).get("payload"));
+        const path = form.dataset.form === "model-weights" ? "/api/settings/model-weights" : "/api/settings/risk-limits";
+        const result = await fetchJson(path, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        addLog(`${form.dataset.form}.saved`, result);
+        await refreshAll();
+      }
+
+      if (form.dataset.form === "backtest-run") {
+        const data = new FormData(form);
+        const payload = {
+          run_type: data.get("run_type"),
+          instrument: data.get("instrument"),
+          timeframe: data.get("timeframe"),
+          start_date: data.get("start_date"),
+          end_date: data.get("end_date"),
+          initial_balance: Number(data.get("initial_balance")),
+          risk_percent: Number(data.get("risk_percent")),
+          model_mode: data.get("model_mode"),
+          synthetic_count: 260,
+          train_size: 90,
+          test_size: 50,
+          step_size: 50,
+          min_window: 80
+        };
+        state.backtestRunStatus = "Running backtest...";
+        state.showBacktestModal = false;
+        renderBacktesting();
+        scheduleBacktestPolling();
+        const result = await fetchJson("/api/backtests/run", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        state.backtestRunStatus = `${result.status}: ${result.message || result.run_id}`;
+        state.backtestStatus = await fetchJson("/api/backtest/status");
+        state.selectedBacktestId = result.run_id;
+        addLog("backtest.completed", result);
+        await refreshAll();
+      }
+    }
+
+    function connectEvents() {
+      const protocol = location.protocol === "https:" ? "wss" : "ws";
+      const socket = new WebSocket(`${protocol}://${location.host}/ws/events`);
+
+      socket.onmessage = async (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          addLog(payload.event || "ws.event", payload.data || {});
+          if (payload.event === "price.tick") {
+            state.livePrice = payload.data || {};
+            updateLivePrice();
+            return;
+          }
+          if (payload.event === "price.stream.status") {
+            state.livePrice = { ...(state.livePrice || {}), stream: payload.data || {}, status: payload.data?.status };
+            updateLivePrice();
+          }
+          if (payload.event === "signal.updated" || payload.event === "risk.blocked" || payload.event === "risk.passed") {
+            await refreshAll();
+          }
+          if (payload.event === "execution.updated") {
+            state.executionStatus = await fetchJson("/api/execution/status");
+            await loadControlUnit();
+            await loadExecutionOrders(false);
+            if (state.activeView === "execution") renderExecution();
+          }
+          if (payload.event === "backtest.auto_market_close") {
+            await loadBacktestStatus();
+          }
+        } catch (err) {
+          addLog("ws.error", { message: String(err) });
+        }
+      };
+
+      socket.onclose = () => {
+        addLog("ws.closed");
+        setTimeout(connectEvents, 3000);
+      };
+    }
+
+    document.addEventListener("click", async (event) => {
+      const nav = event.target.closest("[data-view]");
+      if (nav) {
+        setActiveView(nav.dataset.view);
+        return;
+      }
+
+      const action = event.target.closest("[data-action]");
+      if (!action) return;
+
+      if (action.dataset.action === "open-execution-detail") {
+        await openExecutionDetail(action.dataset.signalId, action.dataset.orderKey);
+        return;
+      }
+      if (action.dataset.action === "close-execution-detail") {
+        closeExecutionDetail();
+        return;
+      }
+      if (action.dataset.action === "run-cycle") await runCycle(action);
+      if (action.dataset.action === "execute-latest") {
+        action.disabled = true;
+        try {
+          const result = await fetchJson("/api/execution/execute-latest", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ source: "dashboard" })
+          });
+          addLog("execution.updated", result);
+          state.executionStatus = await fetchJson("/api/execution/status");
+          await loadExecutionOrders(false);
+          renderExecution();
+        } finally {
+          action.disabled = false;
+        }
+      }
+      if (action.dataset.action === "refresh-execution") {
+        state.executionStatus = await fetchJson("/api/execution/status");
+        await loadExecutionOrders(false);
+        renderExecution();
+      }
+      if (action.dataset.action === "refresh-control-unit") {
+        await loadControlUnit();
+      }
+      if (action.dataset.action === "refresh-execution-outcomes") {
+        const result = await fetchJson("/api/execution/refresh-outcomes", { method: "POST" });
+        addLog("execution.outcomes.refreshed", result);
+        await loadExecutionOrders(false);
+      }
+      if (action.dataset.action === "export-execution-json") {
+        await downloadExecutionOrdersJson(action);
+      }
+      if (action.dataset.action === "clear-execution-filters") {
+        state.executionFilters = { status: "", outcome: "", direction: "", market_session: "", signal_id: "", from_time: "", to_time: "", page: 1, page_size: 25 };
+        await loadExecutionOrders(true);
+      }
+      if (action.dataset.action === "execution-prev") {
+        state.executionFilters.page = Math.max(1, Number(state.executionFilters.page || 1) - 1);
+        await loadExecutionOrders(false);
+      }
+      if (action.dataset.action === "execution-next") {
+        state.executionFilters.page = Number(state.executionFilters.page || 1) + 1;
+        await loadExecutionOrders(false);
+      }
+      if (action.dataset.action === "open-backtest-modal") {
+        state.showBacktestModal = true;
+        renderBacktesting();
+      }
+      if (action.dataset.action === "close-backtest-modal") {
+        state.showBacktestModal = false;
+        renderBacktesting();
+      }
+      if (action.dataset.action === "refresh-backtests") {
+        state.backtestStatus = await fetchJson("/api/backtest/status");
+        state.backtest = await fetchJson("/api/backtest/summary");
+        state.backtests = await fetchJson("/api/backtests");
+        if (state.backtest.run_id) {
+          state.selectedBacktestId = state.backtest.run_id;
+          await loadBacktestDetails(state.selectedBacktestId);
+        }
+        renderBacktesting();
+      }
+      if (action.dataset.action === "select-backtest") {
+        state.selectedBacktestId = action.dataset.runId;
+        state.backtest = await fetchJson(`/api/backtests/${encodeURIComponent(state.selectedBacktestId)}`);
+        await loadBacktestDetails(state.selectedBacktestId);
+        renderBacktesting();
+      }
+      if (action.dataset.action === "refresh-history") {
+        await loadHistory(false);
+      }
+      if (action.dataset.action === "history-prev") {
+        state.historyFilters.page = Math.max(1, (state.historyFilters.page || 1) - 1);
+        await loadHistory(false);
+      }
+      if (action.dataset.action === "history-next") {
+        state.historyFilters.page = (state.historyFilters.page || 1) + 1;
+        await loadHistory(false);
+      }
+      if (action.dataset.action === "clear-history-filters") {
+        state.historyFilters = { signal: "", status: "", outcome: "", from_time: "", to_time: "", page: 1, page_size: state.historyFilters.page_size || 25 };
+        await loadHistory(true);
+      }
+      if (action.dataset.action === "load-replay") {
+        state.replay = await fetchJson(`/api/signals/${action.dataset.signalId || state.latest.id || 1}/replay`);
+        renderReplay();
+      }
+      if (action.dataset.action === "run-optimization") {
+        const result = await fetchJson("/api/optimization/start", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ synthetic_count: 260, search_space: { minimum_final_confidence: [0.55], minimum_risk_reward: [1.5] } })
+        });
+        addLog("optimization.completed", result);
+        state.activeProfile = await fetchJson("/api/strategy/profiles/active");
+        renderOptimization();
+      }
+      if (action.dataset.action === "rollback-profile") {
+        const result = await fetchJson("/api/strategy/profiles/rollback", { method: "POST" });
+        addLog("optimization.rollback", result);
+        state.activeProfile = await fetchJson("/api/strategy/profiles/active");
+        renderOptimization();
+      }
+    });
+
+    document.addEventListener("change", async (event) => {
+      const historyControl = event.target.closest("[data-history-filter]");
+      if (historyControl) {
+        const key = historyControl.dataset.historyFilter;
+        state.historyFilters[key] = key === "page_size" ? Number(historyControl.value) || 25 : historyControl.value;
+        await loadHistory(true);
+        return;
+      }
+
+      const executionControl = event.target.closest("[data-execution-filter]");
+      if (executionControl) {
+        const key = executionControl.dataset.executionFilter;
+        state.executionFilters[key] = key === "page_size" ? Number(executionControl.value) || 25 : executionControl.value;
+        await loadExecutionOrders(true);
+      }
+
+      const controlSession = event.target.closest("[data-control-session]");
+      if (controlSession) {
+        const config = controlConfig();
+        const session = controlSession.dataset.controlSession;
+        config.allowed_sessions = { ...(config.allowed_sessions || {}), [session]: Boolean(controlSession.checked) };
+        await saveControlConfig(config);
+        return;
+      }
+
+      const controlDirection = event.target.closest("[data-control-direction]");
+      if (controlDirection) {
+        const config = controlConfig();
+        const direction = controlDirection.dataset.controlDirection;
+        config.allowed_directions = { ...(config.allowed_directions || {}), [direction]: Boolean(controlDirection.checked) };
+        await saveControlConfig(config);
+        return;
+      }
+
+      const controlToggle = event.target.closest("[data-control-toggle]");
+      if (controlToggle) {
+        const config = controlConfig();
+        config[controlToggle.dataset.controlToggle] = Boolean(controlToggle.checked);
+        await saveControlConfig(config);
+        return;
+      }
+    });
+
+    document.addEventListener("submit", async (event) => {
+      const form = event.target.closest("form[data-form]");
+      if (!form) return;
+      event.preventDefault();
+      try {
+        await handleFormSubmit(form);
+      } catch (err) {
+        addLog("form.error", { message: String(err) });
+      }
+    });
+
+    refreshAll().then(() => {
+      renderDashboard();
+      connectEvents();
+    }).catch(err => {
+      addLog("dashboard.load.error", { message: String(err) });
+      renderLogs();
+      setActiveView("logs");
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+model_name,win_rate,buy_precision,sell_precision,observations
+kronos,0.5,0.0,0.5,2
+tcn,0.5,0.0,0.5,2
+lightgbm,0.5,0.0,0.5,2
+patchtst,0.5,0.0,0.5,2
+cnn_lstm,0.5,0.0,0.5,2
+nhits,0.5,0.0,0.5,2

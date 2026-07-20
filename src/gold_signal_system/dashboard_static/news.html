@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRONOS XAUUSD News Intelligence</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --panel-bg: #111827;
+            --text-color: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border-color: #374151;
+            --accent-color: #3b82f6;
+            --bullish-color: #10b981;
+            --bearish-color: #ef4444;
+            --neutral-color: #6b7280;
+            --warning-color: #f59e0b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1, h2, h3 { margin-top: 0; }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .nav-link {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .nav-link:hover { text-decoration: underline; }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .panel h2 {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            color: var(--accent-color);
+        }
+
+        .item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .item-title { font-weight: bold; margin-bottom: 5px; }
+        .item-meta { font-size: 0.85rem; color: var(--text-muted); }
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .badge-buy { background-color: rgba(16, 185, 129, 0.2); color: var(--bullish-color); border: 1px solid var(--bullish-color); }
+        .badge-sell { background-color: rgba(239, 68, 68, 0.2); color: var(--bearish-color); border: 1px solid var(--bearish-color); }
+        .badge-neutral { background-color: rgba(107, 114, 128, 0.2); color: var(--neutral-color); border: 1px solid var(--neutral-color); }
+        .badge-high { background-color: rgba(245, 158, 11, 0.2); color: var(--warning-color); border: 1px solid var(--warning-color); }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        th { color: var(--text-muted); }
+
+        #active-state-panel {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .metric-box {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+            min-width: 150px;
+        }
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .metric-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>KRONOS News Intelligence</h1>
+        <div>
+            <a href="/" class="nav-link">← Back to Main Dashboard</a>
+        </div>
+    </div>
+
+    <div class="panel" id="active-state-panel">
+        <div class="metric-box">
+            <div class="metric-label">Active Trade Bias</div>
+            <div class="metric-value" id="state-bias">-</div>
+        </div>
+        <div class="metric-box">
+            <div class="metric-label">Confidence</div>
+            <div class="metric-value" id="state-confidence">0%</div>
+        </div>
+        <div class="metric-box">
+            <div class="metric-label">Action Level</div>
+            <div class="metric-value" id="state-action">-</div>
+        </div>
+        <div class="metric-box">
+            <div class="metric-label">Trading Blocked</div>
+            <div class="metric-value" id="state-blocked">-</div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid" style="margin-top: 20px;">
+        <div class="panel">
+            <h2>Recent News Items</h2>
+            <div id="news-container">Loading...</div>
+        </div>
+        <div class="panel">
+            <h2>Upcoming Macro Events</h2>
+            <div id="macro-container">Loading...</div>
+        </div>
+        <div class="panel">
+            <h2>Risk Window</h2>
+            <div id="risk-window-container">Loading...</div>
+        </div>
+        <div class="panel">
+            <h2>Source Health</h2>
+            <div id="source-health-container">Loading...</div>
+        </div>
+        <div class="panel" style="grid-column: 1 / -1;">
+            <h2>Recent AI Analyses</h2>
+            <div id="analysis-container">Loading...</div>
+        </div>
+        <div class="panel" style="grid-column: 1 / -1;">
+            <h2>Shadow Validation</h2>
+            <div id="validation-container">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+        function getBiasClass(bias) {
+            if(bias === 'BUY') return 'badge-buy';
+            if(bias === 'SELL') return 'badge-sell';
+            return 'badge-neutral';
+        }
+
+        async function loadActiveState() {
+            try {
+                const res = await fetch('/api/news/active-state');
+                const state = await res.json();
+                
+                if(!state || Object.keys(state).length === 0) {
+                    document.getElementById('state-bias').textContent = 'NONE';
+                    document.getElementById('state-confidence').textContent = '0%';
+                    document.getElementById('state-action').textContent = 'NONE';
+                    document.getElementById('state-blocked').textContent = 'NO';
+                    return;
+                }
+
+                document.getElementById('state-bias').textContent = state.active_trade_bias || 'NEUTRAL';
+                document.getElementById('state-bias').className = `metric-value ${getBiasClass(state.active_trade_bias)}`;
+                document.getElementById('state-confidence').textContent = `${Math.round((state.active_confidence || 0) * 100)}%`;
+                document.getElementById('state-action').textContent = state.action_level || 'NONE';
+                document.getElementById('state-blocked').textContent = state.block_trading ? 'YES' : 'NO';
+                if(state.block_trading) {
+                    document.getElementById('state-blocked').style.color = 'var(--bearish-color)';
+                }
+            } catch (err) {
+                console.error("Failed to load active state", err);
+            }
+        }
+
+        async function loadNewsItems() {
+            try {
+                const res = await fetch('/api/news/items?limit=10');
+                const payload = await res.json();
+                const items = payload.items || [];
+                const container = document.getElementById('news-container');
+                if(!items.length) {
+                    container.innerHTML = 'No news items found.';
+                    return;
+                }
+                
+                container.innerHTML = items.map(item => `
+                    <div class="item">
+                        <div class="item-title">${item.title}</div>
+                        <div class="item-meta">
+                            ${item.published_at ? new Date(item.published_at).toLocaleString() : new Date(item.collected_at).toLocaleString()} |
+                            Source: ${item.source} |
+                            <span class="badge badge-neutral">${item.event_type || 'UNKNOWN'}</span>
+                            <span class="badge ${item.relevance === 'HIGH' || item.relevance === 'CRITICAL' ? 'badge-high' : 'badge-neutral'}">${item.relevance || 'UNKNOWN'}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Failed to load news", err);
+            }
+        }
+
+        async function loadMacroEvents() {
+            try {
+                const res = await fetch('/api/news/macro-events?limit=10');
+                const payload = await res.json();
+                const events = payload.items || [];
+                const container = document.getElementById('macro-container');
+                if(!events.length) {
+                    container.innerHTML = 'No upcoming macro events.';
+                    return;
+                }
+                
+                container.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Time</th>
+                                <th>Impact</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${events.map(ev => `
+                                <tr>
+                                    <td>${ev.title}</td>
+                                    <td>${new Date(ev.scheduled_at).toLocaleString()}</td>
+                                    <td><span class="badge ${ev.importance === 'HIGH' || ev.importance === 'CRITICAL' ? 'badge-high' : 'badge-neutral'}">${ev.importance}</span></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (err) {
+                console.error("Failed to load macro events", err);
+            }
+        }
+
+        async function loadAnalysis() {
+            try {
+                const res = await fetch('/api/news/analysis?limit=10');
+                const payload = await res.json();
+                const analyses = payload.items || [];
+                const container = document.getElementById('analysis-container');
+                if(!analyses.length) {
+                    container.innerHTML = 'No AI analysis results found.';
+                    return;
+                }
+                
+                container.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Generated At</th>
+                                <th>Item ID</th>
+                                <th>Bias</th>
+                                <th>Confidence</th>
+                                <th>Action</th>
+                                <th>Summary</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${analyses.map(a => `
+                                <tr>
+                                    <td>${new Date(a.created_at).toLocaleString()}</td>
+                                    <td>${a.news_item_id || a.macro_event_id}</td>
+                                    <td><span class="badge ${getBiasClass(a.trade_bias)}">${a.trade_bias}</span></td>
+                                    <td>${Math.round((a.confidence || 0) * 100)}%</td>
+                                    <td>${a.action_level || 'INFO_ONLY'}</td>
+                                    <td><small>${(a.summary || '').substring(0, 120)}...</small></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (err) {
+                console.error("Failed to load analyses", err);
+            }
+        }
+
+        async function loadRiskWindow() {
+            try {
+                const res = await fetch('/api/news/risk-window');
+                const risk = await res.json();
+                const container = document.getElementById('risk-window-container');
+                const event = risk.event || {};
+                container.innerHTML = `
+                    <div class="item">
+                        <div class="item-title">${risk.status || 'CLEAR'} - ${risk.action_level || 'INFO_ONLY'}</div>
+                        <div class="item-meta">${risk.reason || ''}</div>
+                        ${event.title ? `<div class="item-meta">${event.title} | ${new Date(event.scheduled_at).toLocaleString()}</div>` : ''}
+                    </div>
+                `;
+            } catch (err) {
+                console.error("Failed to load risk window", err);
+            }
+        }
+
+        async function loadSourceHealth() {
+            try {
+                const res = await fetch('/api/news/sources/health');
+                const payload = await res.json();
+                const sources = payload.sources || {};
+                const container = document.getElementById('source-health-container');
+                const rows = Object.entries(sources);
+                if(!rows.length) {
+                    container.innerHTML = 'No source health yet.';
+                    return;
+                }
+                container.innerHTML = rows.map(([name, health]) => `
+                    <div class="item">
+                        <div class="item-title">${name}: ${health.status || 'UNKNOWN'}</div>
+                        <div class="item-meta">${health.last_success_at ? `Last OK: ${new Date(health.last_success_at).toLocaleString()}` : ''}</div>
+                        <div class="item-meta">${health.last_error || ''}</div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Failed to load source health", err);
+            }
+        }
+
+        async function loadValidation() {
+            try {
+                const res = await fetch('/api/news/validation/summary');
+                const summary = await res.json();
+                const container = document.getElementById('validation-container');
+                container.innerHTML = `
+                    <div class="item">
+                        <div class="item-title">Accuracy: ${Math.round((summary.accuracy || 0) * 100)}%</div>
+                        <div class="item-meta">Evaluations: ${summary.total || 0} | Correct: ${summary.correct || 0}</div>
+                    </div>
+                `;
+            } catch (err) {
+                console.error("Failed to load validation", err);
+            }
+        }
+
+        async function init() {
+            await Promise.all([
+                loadActiveState(),
+                loadNewsItems(),
+                loadMacroEvents(),
+                loadAnalysis(),
+                loadRiskWindow(),
+                loadSourceHealth(),
+                loadValidation()
+            ]);
+        }
+
+        init();
+        setInterval(init, 30000); // Refresh every 30s
+    </script>
+</body>
+</html>

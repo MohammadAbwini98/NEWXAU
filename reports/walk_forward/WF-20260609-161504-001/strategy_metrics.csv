@@ -1,0 +1,13 @@
+metric,value
+windows,2
+total_signals,1
+recommended_signals,1
+blocked_signals,0
+win_rate,0.5
+profit_factor,0.0
+max_drawdown,0.0
+average_rr,0.0
+number_of_trades,1
+buy_precision,0.0
+sell_precision,0.0
+model_mode,MOCK_FOR_TEST_ONLY

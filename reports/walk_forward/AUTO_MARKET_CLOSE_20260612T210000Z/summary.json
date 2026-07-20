@@ -1,0 +1,216 @@
+{
+  "id": 1,
+  "run_id": "AUTO_MARKET_CLOSE_20260612T210000Z",
+  "run_type": "WALK_FORWARD",
+  "name": "auto_market_close",
+  "instrument": "XAUUSD",
+  "timeframe": "5m",
+  "started_at": "2026-06-12T21:01:06.252706+00:00",
+  "completed_at": "2026-06-12T21:01:06.252706+00:00",
+  "status": "COMPLETED",
+  "config": {
+    "train_size": 90,
+    "test_size": 20,
+    "step_size": 20,
+    "min_window": 80,
+    "instrument": "XAUUSD",
+    "timeframe": "5m",
+    "mode": "strategy_only",
+    "model_mode": "MOCK_FOR_TEST_ONLY",
+    "validation_size": 80,
+    "model_list": null,
+    "feature_config": null,
+    "threshold_config": {
+      "profile": "default"
+    },
+    "output_artifact_path": null,
+    "metrics_output_path": null
+  },
+  "summary": {
+    "windows": 1,
+    "total_signals": 14,
+    "recommended_signals": 14,
+    "blocked_signals": 0,
+    "win_rate": 1.0,
+    "profit_factor": 28.0006,
+    "max_drawdown": 0.0,
+    "average_rr": 2.0,
+    "number_of_trades": 14,
+    "buy_precision": 0.0,
+    "sell_precision": 0.0,
+    "model_mode": "MOCK_FOR_TEST_ONLY",
+    "model_by_model": {
+      "kronos": {
+        "model_win_rate": 0.763158,
+        "buy_precision": 0.52381,
+        "sell_precision": 0.854545,
+        "hold_accuracy": 0.0,
+        "win_rate": 0.763158,
+        "average_confidence": 0.499342,
+        "confidence_calibration": {
+          "0.50-0.60": {
+            "wins": 50,
+            "predictions": 66,
+            "actual_win_rate": 0.757576
+          },
+          "0.60-0.70": {
+            "wins": 9,
+            "predictions": 12,
+            "actual_win_rate": 0.75
+          }
+        },
+        "profit_factor": 4.166706,
+        "profit_factor_contribution": 4.166706,
+        "false_signal_rate": 0.236842,
+        "average_return": 0.75000921,
+        "average_pnl_points": 0.75000921,
+        "max_drawdown_contribution": 0.0,
+        "drift_score": 0.500658,
+        "observations": 78,
+        "number_of_predictions": 78,
+        "number_of_recommended_predictions": 76,
+        "source": "mixed"
+      },
+      "tcn": {
+        "model_win_rate": 0.763158,
+        "buy_precision": 0.52381,
+        "sell_precision": 0.854545,
+        "hold_accuracy": 0.0,
+        "win_rate": 0.763158,
+        "average_confidence": 0.491609,
+        "confidence_calibration": {
+          "0.50-0.60": {
+            "wins": 52,
+            "predictions": 69,
+            "actual_win_rate": 0.753623
+          },
+          "0.60-0.70": {
+            "wins": 7,
+            "predictions": 9,
+            "actual_win_rate": 0.777778
+          }
+        },
+        "profit_factor": 4.166706,
+        "profit_factor_contribution": 4.166706,
+        "false_signal_rate": 0.236842,
+        "average_return": 0.75000921,
+        "average_pnl_points": 0.75000921,
+        "max_drawdown_contribution": 0.0,
+        "drift_score": 0.508391,
+        "observations": 78,
+        "number_of_predictions": 78,
+        "number_of_recommended_predictions": 76,
+        "source": "mixed"
+      },
+      "lightgbm": {
+        "model_win_rate": 0.77027,
+        "buy_precision": 0.578947,
+        "sell_precision": 0.836364,
+        "hold_accuracy": 0.0,
+        "win_rate": 0.77027,
+        "average_confidence": 0.481918,
+        "confidence_calibration": {
+          "0.50-0.60": {
+            "wins": 59,
+            "predictions": 78,
+            "actual_win_rate": 0.75641
+          }
+        },
+        "profit_factor": 4.294159,
+        "profit_factor_contribution": 4.294159,
+        "false_signal_rate": 0.22973,
+        "average_return": 0.75676622,
+        "average_pnl_points": 0.75676622,
+        "max_drawdown_contribution": 0.0,
+        "drift_score": 0.518082,
+        "observations": 78,
+        "number_of_predictions": 78,
+        "number_of_recommended_predictions": 74,
+        "source": "mixed"
+      },
+      "patchtst": {
+        "model_win_rate": 0.776316,
+        "buy_precision": 0.578947,
+        "sell_precision": 0.842105,
+        "hold_accuracy": 0.0,
+        "win_rate": 0.776316,
+        "average_confidence": 0.488052,
+        "confidence_calibration": {
+          "0.50-0.60": {
+            "wins": 59,
+            "predictions": 78,
+            "actual_win_rate": 0.75641
+          }
+        },
+        "profit_factor": 4.470629,
+        "profit_factor_contribution": 4.470629,
+        "false_signal_rate": 0.223684,
+        "average_return": 0.776325,
+        "average_pnl_points": 0.776325,
+        "max_drawdown_contribution": 0.0,
+        "drift_score": 0.511948,
+        "observations": 78,
+        "number_of_predictions": 78,
+        "number_of_recommended_predictions": 76,
+        "source": "mixed"
+      },
+      "cnn_lstm": {
+        "model_win_rate": 0.75641,
+        "buy_precision": 0.52381,
+        "sell_precision": 0.842105,
+        "hold_accuracy": 0.0,
+        "win_rate": 0.75641,
+        "average_confidence": 0.488245,
+        "confidence_calibration": {
+          "0.50-0.60": {
+            "wins": 53,
+            "predictions": 70,
+            "actual_win_rate": 0.757143
+          },
+          "0.60-0.70": {
+            "wins": 6,
+            "predictions": 8,
+            "actual_win_rate": 0.75
+          }
+        },
+        "profit_factor": 4.000037,
+        "profit_factor_contribution": 4.000037,
+        "false_signal_rate": 0.24359,
+        "average_return": 0.73077821,
+        "average_pnl_points": 0.73077821,
+        "max_drawdown_contribution": 0.0,
+        "drift_score": 0.511755,
+        "observations": 78,
+        "number_of_predictions": 78,
+        "number_of_recommended_predictions": 78,
+        "source": "mixed"
+      },
+      "nhits": {
+        "model_win_rate": 0.771429,
+        "buy_precision": 0.529412,
+        "sell_precision": 0.849057,
+        "hold_accuracy": 0.0,
+        "win_rate": 0.771429,
+        "average_confidence": 0.47352,
+        "confidence_calibration": {
+          "0.50-0.60": {
+            "wins": 59,
+            "predictions": 78,
+            "actual_win_rate": 0.75641
+          }
+        },
+        "profit_factor": 4.375044,
+        "profit_factor_contribution": 4.375044,
+        "false_signal_rate": 0.228571,
+        "average_return": 0.77143857,
+        "average_pnl_points": 0.77143857,
+        "max_drawdown_contribution": 0.0,
+        "drift_score": 0.52648,
+        "observations": 78,
+        "number_of_predictions": 78,
+        "number_of_recommended_predictions": 70,
+        "source": "mixed"
+      }
+    }
+  }
+}

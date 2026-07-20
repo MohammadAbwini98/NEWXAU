@@ -1,0 +1,65 @@
+{
+  "timeframe": "1h",
+  "horizon": 8,
+  "buy_threshold": 0.00601449598358313,
+  "sell_threshold": -0.005382594224467151,
+  "n_samples": 20673,
+  "n_train": 16538,
+  "n_val": 4135,
+  "seq_len": 96,
+  "n_channels": 10,
+  "results": {
+    "lightgbm": {
+      "val_acc": 0.386,
+      "val_mean_conf": 0.3867,
+      "recall": {
+        "BUY": 0.351,
+        "SELL": 0.345,
+        "HOLD": 0.448
+      },
+      "artifact": "models\\lightgbm.joblib",
+      "best_iteration": 26
+    },
+    "tcn": {
+      "val_acc": 0.3952,
+      "val_mean_conf": 0.4511,
+      "recall": {
+        "BUY": 0.21,
+        "SELL": 0.153,
+        "HOLD": 0.745
+      },
+      "artifact": "models\\weights\\tcn.pt"
+    },
+    "cnn_lstm": {
+      "val_acc": 0.3886,
+      "val_mean_conf": 0.4222,
+      "recall": {
+        "BUY": 0.194,
+        "SELL": 0.59,
+        "HOLD": 0.352
+      },
+      "artifact": "models\\weights\\cnn_lstm.pt"
+    },
+    "patchtst": {
+      "val_acc": 0.3944,
+      "val_mean_conf": 0.4785,
+      "recall": {
+        "BUY": 0.19,
+        "SELL": 0.317,
+        "HOLD": 0.613
+      },
+      "artifact": "models\\weights\\patchtst.pt"
+    },
+    "nhits": {
+      "val_acc": 0.3976,
+      "val_mean_conf": 0.5022,
+      "recall": {
+        "BUY": 0.336,
+        "SELL": 0.318,
+        "HOLD": 0.513
+      },
+      "artifact": "models\\weights\\nhits.pt"
+    }
+  },
+  "trained_seconds": 559.2
+}

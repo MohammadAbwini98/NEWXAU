@@ -1,0 +1,19 @@
+.env
+.env.*
+!.env.example
+
+.venv/
+.pytest_cache/
+**/__pycache__/
+*.py[cod]
+
+# Runtime state, local databases, and provider sessions.
+runtime/
+storage/capital_com_session_state.json
+
+# Downloaded/trained model artifacts and dataset caches.
+Kronos-new/
+models/kronos_hf/
+models/weights/
+models/_artifacts_5m_backup/
+training/_cache/
