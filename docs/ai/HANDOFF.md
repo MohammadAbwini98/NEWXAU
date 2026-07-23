@@ -1,44 +1,60 @@
 # Active Handoff
 
-Last updated: 2026-07-21 02:06 Asia/Amman
+Last updated: 2026-07-23 23:40 Asia/Amman
 
 ## Status
 
-No active handoff.
+Desktop migration implementation is active on
+`feature/electron-desktop-migration`.
 
 ## Objective
 
-- None.
+- Follow `NEWXAU_AWKIT_DESKTOP_MIGRATION_PLAN.md` while preserving the Python
+  backend, contracts, and trading safeguards.
 
 ## Completed
 
-- None.
+- Phases 0–10 foundations and Phase 12 CI are implemented. See
+  `docs/desktop/MIGRATION_STATUS.md`.
+- Electron/React routes are live against the preserved REST/WebSocket contract.
+- Focused Python, TypeScript, build, audit, headless lifecycle, and screenshot
+  validation passed.
 
 ## In Progress
 
-- None.
+- Phase 11 release packaging awaits a validated private Windows Python runtime,
+  signing configuration, and clean-machine validation.
 
 ## Blockers / Unknowns
 
-- None.
+- Private Python runtime and signed release infrastructure are not repository
+  inputs. Packaging is intentionally blocked by `npm run runtime:verify`.
 
 ## Next Safe Actions
 
-- Read `AGENTS.md`, `docs/ai/README.md`, and `docs/ai/CURRENT_STATE.md`.
-- Inspect the working tree before editing.
-- Never call a live broker during agent validation; safe mocked execution unit tests remain allowed.
+- Review `docs/desktop/PARITY_MATRIX.md` with the user.
+- Stage the approved private Python runtime only through the release artifact
+  process, then run the packaging commands in `docs/desktop/PACKAGING.md`.
+- Run installer smoke from a clean Windows account before cutover.
 
 ## Files Changed
 
-- None.
+- `app/`, `desktop/`, `docs/desktop/`, `.github/workflows/desktop-ci.yml`
+- `scripts/run_backend.py`, `scripts/export_desktop_baseline.py`
+- `src/gold_signal_system/api.py`, `config.py`, `desktop_runtime.py`
+- Desktop tests/configuration and AI memory files.
 
 ## Verification Performed
 
-- None.
+- 44 Python tests plus 13 subtests passed in the safe focused gate.
+- 6 Vitest tests, TypeScript typecheck, production build, and `npm audit`
+  passed.
+- Headless Electron renderer/backend lifecycle and both visual captures passed.
 
 ## Verification Still Required
 
-- None.
+- Private runtime import smoke, unpacked packaging, NSIS/portable builds, code
+  signing, and clean-machine installer validation.
 
 ## Safety Notes
 

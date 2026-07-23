@@ -19,6 +19,31 @@ This implementation follows the provided phase documents in `Changes/` and is bu
 pip install -r requirements.txt
 ```
 
+## Desktop Application
+
+The AWKIT-inspired Windows desktop client is implemented with Electron, React,
+and TypeScript while the Python/FastAPI backend remains authoritative.
+
+Use Node 22.12 or newer:
+
+```powershell
+npm ci
+npm run dev
+```
+
+Validation:
+
+```powershell
+npm run typecheck
+npm test
+npm run build
+npm audit
+```
+
+The legacy dashboard remains available through `python scripts/run_api.py`.
+Installer packaging is intentionally gated on a validated private Python runtime;
+see `docs/desktop/PACKAGING.md` and `docs/desktop/MIGRATION_STATUS.md`.
+
 ## Runtime Modes
 
 The system supports both local simulation and production-oriented runtime wiring.

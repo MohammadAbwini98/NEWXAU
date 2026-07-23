@@ -1,0 +1,524 @@
+[
+  {
+    "method": "GET",
+    "path": "/",
+    "handler": "dashboard",
+    "line": 1719
+  },
+  {
+    "method": "GET",
+    "path": "/api/backtest/status",
+    "handler": "get_backtest_status",
+    "line": 1172
+  },
+  {
+    "method": "GET",
+    "path": "/api/backtest/summary",
+    "handler": "get_backtest_summary",
+    "line": 1167
+  },
+  {
+    "method": "GET",
+    "path": "/api/backtests",
+    "handler": "list_walk_forward_backtests",
+    "line": 1417
+  },
+  {
+    "method": "POST",
+    "path": "/api/backtests/run",
+    "handler": "run_backtest",
+    "line": 1398
+  },
+  {
+    "method": "POST",
+    "path": "/api/backtests/walk-forward/start",
+    "handler": "start_walk_forward_backtest",
+    "line": 1404
+  },
+  {
+    "method": "GET",
+    "path": "/api/backtests/{run_id}",
+    "handler": "get_walk_forward_backtest",
+    "line": 1422
+  },
+  {
+    "method": "GET",
+    "path": "/api/backtests/{run_id}/signals",
+    "handler": "get_walk_forward_signals",
+    "line": 1432
+  },
+  {
+    "method": "GET",
+    "path": "/api/backtests/{run_id}/trades",
+    "handler": "get_backtest_trades",
+    "line": 1437
+  },
+  {
+    "method": "GET",
+    "path": "/api/backtests/{run_id}/windows",
+    "handler": "get_walk_forward_windows",
+    "line": 1427
+  },
+  {
+    "method": "GET",
+    "path": "/api/dashboard/current-signal",
+    "handler": "get_dashboard_current_signal",
+    "line": 608
+  },
+  {
+    "method": "GET",
+    "path": "/api/dashboard/summary",
+    "handler": "get_dashboard_summary",
+    "line": 602
+  },
+  {
+    "method": "GET",
+    "path": "/api/execution/control",
+    "handler": "get_execution_control",
+    "line": 655
+  },
+  {
+    "method": "PUT",
+    "path": "/api/execution/control",
+    "handler": "update_execution_control",
+    "line": 671
+  },
+  {
+    "method": "GET",
+    "path": "/api/execution/control/stats",
+    "handler": "get_execution_control_stats",
+    "line": 688
+  },
+  {
+    "method": "POST",
+    "path": "/api/execution/execute-latest",
+    "handler": "execute_latest_signal",
+    "line": 801
+  },
+  {
+    "method": "POST",
+    "path": "/api/execution/execute/{signal_id}",
+    "handler": "execute_signal",
+    "line": 812
+  },
+  {
+    "method": "GET",
+    "path": "/api/execution/orders",
+    "handler": "get_execution_orders",
+    "line": 693
+  },
+  {
+    "method": "GET",
+    "path": "/api/execution/orders/export",
+    "handler": "export_execution_orders",
+    "line": 738
+  },
+  {
+    "method": "POST",
+    "path": "/api/execution/refresh-outcomes",
+    "handler": "refresh_execution_outcomes",
+    "line": 794
+  },
+  {
+    "method": "GET",
+    "path": "/api/execution/status",
+    "handler": "get_execution_status",
+    "line": 649
+  },
+  {
+    "method": "GET",
+    "path": "/api/indicators/latest",
+    "handler": "get_latest_indicators",
+    "line": 1149
+  },
+  {
+    "method": "GET",
+    "path": "/api/market/hours",
+    "handler": "get_market_hours",
+    "line": 1085
+  },
+  {
+    "method": "GET",
+    "path": "/api/market/regime/current",
+    "handler": "get_current_market_regime",
+    "line": 1074
+  },
+  {
+    "method": "GET",
+    "path": "/api/market/regime/history",
+    "handler": "get_market_regime_history",
+    "line": 1080
+  },
+  {
+    "method": "GET",
+    "path": "/api/market/timeframes/current",
+    "handler": "get_current_timeframe_confirmation",
+    "line": 1102
+  },
+  {
+    "method": "GET",
+    "path": "/api/models/artifacts",
+    "handler": "get_model_artifacts",
+    "line": 963
+  },
+  {
+    "method": "GET",
+    "path": "/api/models/latest-votes",
+    "handler": "get_latest_model_votes",
+    "line": 957
+  },
+  {
+    "method": "GET",
+    "path": "/api/models/performance",
+    "handler": "get_model_performance",
+    "line": 971
+  },
+  {
+    "method": "GET",
+    "path": "/api/models/performance/by-regime",
+    "handler": "get_model_performance_by_regime",
+    "line": 999
+  },
+  {
+    "method": "GET",
+    "path": "/api/models/performance/confidence-calibration",
+    "handler": "get_model_confidence_calibration",
+    "line": 1004
+  },
+  {
+    "method": "GET",
+    "path": "/api/models/performance/summary",
+    "handler": "get_model_performance_summary",
+    "line": 984
+  },
+  {
+    "method": "GET",
+    "path": "/api/models/performance/{model_name}",
+    "handler": "get_model_performance_detail",
+    "line": 1009
+  },
+  {
+    "method": "GET",
+    "path": "/api/models/weights/current",
+    "handler": "get_current_model_weights",
+    "line": 1014
+  },
+  {
+    "method": "GET",
+    "path": "/api/models/weights/history",
+    "handler": "get_model_weight_history",
+    "line": 1024
+  },
+  {
+    "method": "PUT",
+    "path": "/api/models/weights/profile/{model_name}",
+    "handler": "update_model_weight_profile",
+    "line": 1052
+  },
+  {
+    "method": "POST",
+    "path": "/api/models/weights/recalculate",
+    "handler": "recalculate_model_weights",
+    "line": 1032
+  },
+  {
+    "method": "GET",
+    "path": "/api/news/active-state",
+    "handler": "get_active_news_state",
+    "line": 1767
+  },
+  {
+    "method": "GET",
+    "path": "/api/news/analysis",
+    "handler": "get_news_analysis",
+    "line": 1754
+  },
+  {
+    "method": "POST",
+    "path": "/api/news/collect/run-now",
+    "handler": "run_news_collection",
+    "line": 1802
+  },
+  {
+    "method": "GET",
+    "path": "/api/news/current-risk",
+    "handler": "get_current_news_risk",
+    "line": 1113
+  },
+  {
+    "method": "GET",
+    "path": "/api/news/dashboard/summary",
+    "handler": "get_news_dashboard_summary",
+    "line": 1729
+  },
+  {
+    "method": "GET",
+    "path": "/api/news/items",
+    "handler": "get_news_items",
+    "line": 1734
+  },
+  {
+    "method": "GET",
+    "path": "/api/news/macro-events",
+    "handler": "get_macro_events",
+    "line": 1772
+  },
+  {
+    "method": "POST",
+    "path": "/api/news/macro-events/manual",
+    "handler": "create_manual_macro_event",
+    "line": 1813
+  },
+  {
+    "method": "PUT",
+    "path": "/api/news/macro-events/{event_id}/actual",
+    "handler": "update_macro_event_actual",
+    "line": 1819
+  },
+  {
+    "method": "POST",
+    "path": "/api/news/manual",
+    "handler": "create_manual_news",
+    "line": 1808
+  },
+  {
+    "method": "GET",
+    "path": "/api/news/risk-window",
+    "handler": "get_news_risk_window",
+    "line": 1792
+  },
+  {
+    "method": "GET",
+    "path": "/api/news/sources/health",
+    "handler": "get_news_sources_health",
+    "line": 1797
+  },
+  {
+    "method": "GET",
+    "path": "/api/news/state",
+    "handler": "get_news_state",
+    "line": 1760
+  },
+  {
+    "method": "POST",
+    "path": "/api/news/sync",
+    "handler": "sync_news",
+    "line": 1121
+  },
+  {
+    "method": "GET",
+    "path": "/api/news/upcoming",
+    "handler": "get_upcoming_news",
+    "line": 1108
+  },
+  {
+    "method": "GET",
+    "path": "/api/news/validation/summary",
+    "handler": "get_news_validation_summary",
+    "line": 1824
+  },
+  {
+    "method": "GET",
+    "path": "/api/optimization/runs",
+    "handler": "get_optimization_runs",
+    "line": 1448
+  },
+  {
+    "method": "GET",
+    "path": "/api/optimization/runs/{run_id}",
+    "handler": "get_optimization_run",
+    "line": 1453
+  },
+  {
+    "method": "GET",
+    "path": "/api/optimization/runs/{run_id}/candidates",
+    "handler": "get_optimization_candidates",
+    "line": 1458
+  },
+  {
+    "method": "POST",
+    "path": "/api/optimization/start",
+    "handler": "start_threshold_optimization",
+    "line": 1442
+  },
+  {
+    "method": "POST",
+    "path": "/api/paper/outcome",
+    "handler": "ingest_paper_outcome",
+    "line": 1623
+  },
+  {
+    "method": "GET",
+    "path": "/api/price/latest",
+    "handler": "get_latest_price",
+    "line": 626
+  },
+  {
+    "method": "GET",
+    "path": "/api/report-file",
+    "handler": "get_report_file",
+    "line": 1705
+  },
+  {
+    "method": "GET",
+    "path": "/api/risk/status",
+    "handler": "get_risk_status",
+    "line": 1158
+  },
+  {
+    "method": "POST",
+    "path": "/api/settings/model-weights",
+    "handler": "set_model_weights",
+    "line": 1543
+  },
+  {
+    "method": "POST",
+    "path": "/api/settings/risk-limits",
+    "handler": "set_risk_limits",
+    "line": 1566
+  },
+  {
+    "method": "GET",
+    "path": "/api/signals/history",
+    "handler": "get_signal_history",
+    "line": 822
+  },
+  {
+    "method": "GET",
+    "path": "/api/signals/latest",
+    "handler": "get_latest_signal",
+    "line": 613
+  },
+  {
+    "method": "GET",
+    "path": "/api/signals/outcomes",
+    "handler": "get_signal_outcomes",
+    "line": 852
+  },
+  {
+    "method": "GET",
+    "path": "/api/signals/outcomes/summary",
+    "handler": "get_signal_outcome_summary",
+    "line": 858
+  },
+  {
+    "method": "GET",
+    "path": "/api/signals/recent",
+    "handler": "get_recent_signals",
+    "line": 846
+  },
+  {
+    "method": "POST",
+    "path": "/api/signals/run",
+    "handler": "run_signal_cycle",
+    "line": 1586
+  },
+  {
+    "method": "POST",
+    "path": "/api/signals/validate-outcomes",
+    "handler": "validate_signal_outcomes",
+    "line": 890
+  },
+  {
+    "method": "POST",
+    "path": "/api/signals/validate-pending",
+    "handler": "validate_pending_signals",
+    "line": 895
+  },
+  {
+    "method": "GET",
+    "path": "/api/signals/{signal_id}",
+    "handler": "get_signal_detail",
+    "line": 900
+  },
+  {
+    "method": "GET",
+    "path": "/api/signals/{signal_id}/entry-plans",
+    "handler": "get_signal_entry_plans",
+    "line": 939
+  },
+  {
+    "method": "GET",
+    "path": "/api/signals/{signal_id}/outcome",
+    "handler": "get_signal_outcome",
+    "line": 918
+  },
+  {
+    "method": "GET",
+    "path": "/api/signals/{signal_id}/regime",
+    "handler": "get_signal_regime",
+    "line": 927
+  },
+  {
+    "method": "GET",
+    "path": "/api/signals/{signal_id}/replay",
+    "handler": "get_signal_replay",
+    "line": 951
+  },
+  {
+    "method": "GET",
+    "path": "/api/signals/{signal_id}/selected-plan",
+    "handler": "get_signal_selected_plan",
+    "line": 945
+  },
+  {
+    "method": "GET",
+    "path": "/api/signals/{signal_id}/snapshot",
+    "handler": "get_signal_snapshot",
+    "line": 909
+  },
+  {
+    "method": "GET",
+    "path": "/api/signals/{signal_id}/timeframe-confirmation",
+    "handler": "get_signal_timeframe_confirmation",
+    "line": 933
+  },
+  {
+    "method": "GET",
+    "path": "/api/strategy/profiles/active",
+    "handler": "get_active_strategy_profile",
+    "line": 1463
+  },
+  {
+    "method": "POST",
+    "path": "/api/strategy/profiles/rollback",
+    "handler": "rollback_strategy_profile",
+    "line": 1486
+  },
+  {
+    "method": "POST",
+    "path": "/api/strategy/profiles/{profile_id}/activate",
+    "handler": "activate_strategy_profile",
+    "line": 1468
+  },
+  {
+    "method": "GET",
+    "path": "/api/system/health",
+    "handler": "get_system_health",
+    "line": 1504
+  },
+  {
+    "method": "POST",
+    "path": "/api/system/health/check-now",
+    "handler": "check_system_health_now",
+    "line": 1538
+  },
+  {
+    "method": "GET",
+    "path": "/api/system/health/events",
+    "handler": "get_system_health_events",
+    "line": 1530
+  },
+  {
+    "method": "GET",
+    "path": "/favicon.ico",
+    "handler": "get_favicon",
+    "line": 597
+  },
+  {
+    "method": "GET",
+    "path": "/news",
+    "handler": "news_dashboard",
+    "line": 1723
+  }
+]

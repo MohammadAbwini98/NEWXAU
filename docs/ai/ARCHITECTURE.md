@@ -31,9 +31,38 @@ graph TD;
 *   **Event Flow**: `event_bus.py` provides pub/sub. Background runner emits cycle updates to the bus, which the websocket pushes to clients.
 
 ## Frontend Structure
-*   Vanilla JS / HTML / CSS located in `src/gold_signal_system/dashboard_static/`.
-*   Connects to `/api` endpoints for historical REST queries.
-*   Connects to `/ws/events` for live streaming updates.
+* Legacy: vanilla JS / HTML / CSS in
+  `src/gold_signal_system/dashboard_static/`.
+* Desktop: Electron main/preload in `app/main/`, shared IPC contracts in
+  `app/shared/`, and React/TypeScript renderer in `app/renderer/`.
+* Electron main owns the Python process, random loopback port, per-launch token,
+  local settings, encrypted secrets, and REST proxy.
+* The renderer has no Node integration. It uses a narrow `contextBridge` API,
+  typed REST client, and authenticated `/ws/events` client with bounded
+  reconnect and targeted refreshes.
+* Existing endpoint paths, payload shapes, and WebSocket event names remain
+  backend-authoritative.
+
+## Desktop Process Flow
+
+```mermaid
+graph LR;
+    ElectronMain-->PreloadBridge;
+    PreloadBridge-->ReactRenderer;
+    ElectronMain-- spawn/token/env -->FastAPI;
+    ReactRenderer-- typed IPC REST -->ElectronMain;
+    ElectronMain-- bearer REST -->FastAPI;
+    FastAPI-- token WebSocket -->ReactRenderer;
+    FastAPI-->TradingPipeline;
+    FastAPI-->Storage;
+```
+
+* `scripts/run_backend.py` binds only to `127.0.0.1` and prints a JSON readiness
+  record after Uvicorn is listening.
+* Runtime writes resolve under `%LOCALAPPDATA%\NEWXAU\runtime`; packaged
+  resources resolve independently of the current working directory.
+* Desktop shutdown first requests bounded graceful backend shutdown and then
+  terminates the owned child only as a fallback.
 
 ## Database / Data Layer
 *   **Engine**: PostgreSQL.

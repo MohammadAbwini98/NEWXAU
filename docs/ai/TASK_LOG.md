@@ -586,3 +586,57 @@ The API correctly persisted checkbox values; the dashboard could overwrite a new
 ### Remaining Notes
 
 Manual browser verification is still recommended after restarting the API: toggle several session, direction, and policy checkboxes quickly and confirm each stays selected after the `Saved` message and a manual Refresh. No live broker request is needed for this check.
+
+## 2026-07-23 - AWKIT-Inspired Electron Desktop Migration
+
+### Agent / Tool
+
+Codex
+
+### Task
+
+Followed the staged NEWXAU desktop migration plan while retaining the FastAPI
+backend, legacy dashboard, and all execution safeguards.
+
+### Files Created / Updated
+
+- `app/main/`, `app/renderer/`, `app/shared/`
+- `desktop/openapi/`, `desktop/verification/`, `desktop/runtime/`
+- `.github/workflows/desktop-ci.yml`
+- `package.json`, `package-lock.json`, Electron/Vite/TypeScript/Vitest configs
+- `scripts/run_backend.py`, `scripts/export_desktop_baseline.py`
+- `src/gold_signal_system/api.py`, `config.py`, `desktop_runtime.py`
+- `tests/test_desktop_runtime.py`, `tests/test_desktop_contract_baseline.py`
+- `docs/desktop/` and relevant `docs/ai/` memory files
+
+### Summary
+
+Created the pre-migration tag and migration branch, froze endpoint/event/env/hash
+baselines, added a secure Electron-owned Python lifecycle, token-protected
+loopback REST/WebSocket access, runtime-path abstraction, Windows-encrypted
+secret storage, typed clients, reconnecting targeted events, and the complete
+desktop route shell. Ported live dashboard, signal, execution, Control Unit,
+history, analysis, research, health, and settings surfaces. The new Control Unit
+uses explicit save and rejects stale refresh adoption while edits are dirty.
+The legacy dashboard remains available. Installer output is intentionally gated
+until the private Python runtime and signing inputs exist.
+
+### Checks Run
+
+- 44 focused Python tests passed plus 13 market-session subtests.
+- 6 Vitest tests passed.
+- TypeScript strict typecheck and Electron production build passed.
+- `npm audit` reported zero vulnerabilities.
+- Headless Electron production renderer, authenticated backend lifecycle,
+  WebSocket connection, graceful shutdown, and legacy/desktop screenshot
+  captures passed.
+- A combined legacy dashboard-startup run reproduced the known local
+  `torch`/`safetensors` native access violation; it was isolated from the safe
+  gate and made no broker request.
+
+### Remaining Notes
+
+Stage the approved private Windows Python runtime at
+`desktop/runtime/python/`, validate with `npm run runtime:verify`, then build,
+sign, and test NSIS/portable artifacts on a clean Windows account. Do not remove
+the legacy dashboard until explicit parity acceptance.

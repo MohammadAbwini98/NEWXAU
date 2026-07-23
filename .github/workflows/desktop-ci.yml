@@ -1,0 +1,50 @@
+name: Desktop migration CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - feature/electron-desktop-migration
+
+jobs:
+  python-safety:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Desktop, execution, Control Unit, and session tests
+        shell: pwsh
+        env:
+          PYTHONPATH: src
+          ENABLE_BACKGROUND_CYCLE_RUNNER: "0"
+          ENABLE_LIVE_PRICE_STREAM: "0"
+          CAPITAL_EXECUTION_ENABLED: "0"
+          CAPITAL_EXECUTION_AUTO_EXECUTE: "0"
+          CAPITAL_EXECUTION_DEMO_ONLY: "1"
+        run: >-
+          python -m pytest
+          tests/test_desktop_runtime.py
+          tests/test_desktop_contract_baseline.py
+          tests/test_execution_control.py
+          tests/test_capital_execution.py
+          tests/test_market_sessions.py
+          -q
+
+  electron:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.12.0"
+          cache: npm
+      - run: npm ci
+      - run: npm audit
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build

@@ -1,6 +1,6 @@
 # Commands
 
-Last updated: 2026-07-21
+Last updated: 2026-07-23
 
 Only list commands confirmed by repository evidence.
 
@@ -14,6 +14,7 @@ pip install -r requirements.txt
 
 ```powershell
 python scripts/run_api.py
+python scripts/run_backend.py --host 127.0.0.1 --port 0
 python scripts/run_cycle.py
 python scripts/run_cycle.py --mock
 python scripts/run_backtest.py
@@ -25,8 +26,10 @@ python scripts/init_db.py
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests -q
+.\.venv\Scripts\python.exe -m pytest tests\test_desktop_runtime.py tests\test_desktop_contract_baseline.py tests\test_execution_control.py tests\test_capital_execution.py tests\test_market_sessions.py -q
 .\.venv\Scripts\python.exe -m pytest tests\test_market_sessions.py tests\test_execution_control.py -q
 .\.venv\Scripts\python.exe -m pytest tests\test_capital_execution.py -q
+npm test
 ```
 
 ## Compile / Syntax Check
@@ -35,13 +38,33 @@ python scripts/init_db.py
 .\.venv\Scripts\python.exe -m compileall src scripts tests
 ```
 
-## Lint / Type Check
+## Desktop Build / Type Check
 
-No dedicated lint/type-check command is configured in the repository.
+```powershell
+npm ci
+npm audit
+npm run typecheck
+npm run build
+```
 
 ## Frontend
 
-There is no `package.json`; the dashboard is vanilla HTML/JS served by FastAPI.
+```powershell
+npm run dev
+```
+
+The legacy dashboard remains vanilla HTML/JS served by FastAPI.
+
+## Windows Packaging
+
+Requires Node 22.12+ and a staged private runtime described in
+`docs/desktop/PACKAGING.md`.
+
+```powershell
+npm run runtime:verify
+npm run package:dir
+npm run package:win
+```
 
 ## AI Memory Check
 

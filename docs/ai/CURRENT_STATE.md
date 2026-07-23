@@ -1,13 +1,23 @@
 # Current State
 
-Last updated: 2026-07-21
+Last updated: 2026-07-23
 
 ## What Works
 
 - **AI-agent architecture:** `AGENTS.md` and `docs/ai/` are the shared source of truth. `docs/ai/README.md` defines token-efficient reading order, while `docs/ai/HANDOFF.md` stores active transfer state. Tool-neutral procedures live under `.agents/`; Claude uses thin `.claude/` adapters, Gemini uses `.gemini/commands`, and Cursor uses path-scoped `.cursor/rules`. The memory checker validates required memory/handoff files, scans adapter text for secret-like values, and warns about optional adapter gaps.
 - The project is version-controlled in the public `MohammadAbwini98/NEWXAU` GitHub repository; `vendor/Kronos` is tracked as an upstream Git submodule.
 - FastAPI API/dashboard entry point exists via `scripts/run_api.py`.
-- The dashboard uses vanilla HTML/JS in `src/gold_signal_system/dashboard_static/`.
+- A headless loopback entry exists via `scripts/run_backend.py`; it supports a
+  dynamic port, machine-readable readiness, desktop token authentication, and
+  desktop-managed graceful shutdown.
+- The legacy dashboard remains in `src/gold_signal_system/dashboard_static/`.
+- The AWKIT-inspired Electron/React/TypeScript application lives under `app/`.
+  It owns the Python child process, uses a narrow preload bridge, stores desktop
+  settings under `%LOCALAPPDATA%\NEWXAU`, encrypts configured secrets with
+  Electron `safeStorage`, and connects to the preserved REST/WebSocket contract.
+- Desktop routes now cover Overview, Live Signal, Execution, Control Unit,
+  Signal History, Models, Indicators, Risk, Backtesting, Optimization, Replay,
+  News Intelligence, System Health, and Settings.
 - Storage supports PostgreSQL and in-memory fallback.
 - Capital.com execution integration exists and keeps demo/safety guard rails.
 - Capital.com execution forces broker account selection for `CAPITAL_EXECUTION_ACCOUNT_NAME` immediately before market order submission and validates the selected account.
@@ -33,13 +43,26 @@ Last updated: 2026-07-21
 - Legacy stored session labels such as `ASIAN`, `LONDON`, `NEW_YORK`, `LONDON_NEW_YORK_OVERLAP`, and `ROLLOVER` are accepted as aliases and normalized to the new session names.
 - Candle storage used by live signal generation is still in-process memory. Broker failures other than one recoverable 401, or a stalled background worker, can still leave live ticks fresh while signal candles and recommendations stop advancing; check `/api/system/health.background_cycle`.
 - Existing walk-forward JSON reports predate the cost-aware legacy simulator and use mock models; they are baselines only and must not be presented as production profitability evidence.
+- Windows installer production is gated on a validated private Python runtime
+  staged at `desktop/runtime/python/`, code signing, and clean-machine smoke
+  validation. `npm run runtime:verify` intentionally fails until that release
+  input exists.
+- Node 22.12 or newer is required for packaging. The current local Node 18
+  runtime can type-check, test, build, and run Electron smoke validation, but
+  does not meet the declared packaging toolchain floor.
+- The legacy dashboard-startup test can enter real local Kronos inference and
+  trigger a Windows native `torch`/`safetensors` access violation. Use the safe
+  desktop/execution/control/session gate until the native artifact is repaired.
 
 ## Must Not Break
 
 - Data -> Indicators -> Models -> Strategy -> Trade Plan -> Risk -> Control Unit -> Execution separation.
 - In-memory fallback when PostgreSQL is unavailable.
 - Capital.com execution safety controls, especially `CAPITAL_EXECUTION_DEMO_ONLY=1`.
-- Dashboard compatibility with vanilla HTML/JS.
+- Legacy dashboard compatibility with vanilla HTML/JS until explicit cutover
+  acceptance.
+- Desktop REST/WebSocket token enforcement and main-process sender/navigation
+  guards.
 
 ## Next Logical Steps
 
@@ -49,5 +72,9 @@ Last updated: 2026-07-21
 - Watch the dashboard `Stream:` pill and `/api/price/latest` after long-running sessions; it should show fresh ticks or an explicit reconnecting status instead of silently freezing.
 - Watch `/api/system/health` after long-running sessions; `background_cycle.healthy` should stay true and `background_cycle.last_success_at` should update near the configured live-cycle interval.
 - Keep memory docs current after implementation work.
+- Stage and validate the private Windows Python runtime, then run
+  `npm run package:dir` and clean-machine installer smoke validation.
+- Review `docs/desktop/PARITY_MATRIX.md` and explicitly accept the desktop
+  surfaces before removing or redirecting the legacy dashboard.
 - Run the data-quality gate in shadow/monitor-only mode first, then explicitly enable it only after reviewing block rates and false blocks on versioned out-of-sample data.
 - Rerun time-ordered walk-forward and paper/demo validation with identical spread, slippage, and commission assumptions before promoting any strategy or model change.

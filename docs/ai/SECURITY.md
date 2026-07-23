@@ -9,8 +9,31 @@
 *   `POSTGRES_DSN`: Database connection string containing password.
 
 ## Authentication / Authorization
-*   Currently, the API appears to be an internal-facing tool.
-*   If exposed publicly, standard authentication must be added (currently missing/unknown in API layer).
+* The legacy development API remains internal-facing when
+  `NEWXAU_DESKTOP_TOKEN` is unset.
+* Desktop mode generates a random per-launch token in Electron main. All
+  `/api/*` requests require its bearer token and `/ws/events` requires the token
+  query parameter.
+* The backend binds to loopback only. Configured desktop CORS uses one exact
+  origin rather than a wildcard.
+* Electron uses context isolation, disables renderer Node integration, validates
+  IPC senders, blocks unexpected navigation/windows, and exposes one method per
+  allowed IPC action.
+* The generic REST bridge permits GET requests plus an explicit mutation
+  allowlist. Direct order-submission endpoints are not exposed to the renderer.
+* Electron-vite emits an ESM preload, which Electron requires to run
+  unsandboxed. The risk is bounded by the isolated narrow bridge, sender guards,
+  CSP, and navigation lockdown.
+
+## Desktop Secrets
+
+* Capital.com, PostgreSQL, and Telegram secret values are encrypted through
+  Electron `safeStorage` in `%LOCALAPPDATA%\NEWXAU`.
+* The renderer can only query whether a secret is configured; decrypted values
+  are injected into the owned Python child environment and never returned to
+  renderer JavaScript.
+* Desktop settings and secret writes are serialized and use temporary-file
+  replacement.
 
 ## Sensitive Data Logging
 *   **Never log passwords, API keys, or raw PostgreSQL connection strings.**
@@ -18,6 +41,8 @@
 
 ## Dependency Risks
 *   Run pip audits occasionally. Stick to pinned versions in `requirements.txt`.
+* `npm audit` reports zero vulnerabilities for the checked-in desktop lockfile.
+  Packaging requires Node 22.12 or newer.
 
 ## Execution Risks (Demo vs Real)
 *   Ensure `CAPITAL_EXECUTION_DEMO_ONLY=1` remains intact in the `.env` default flow.

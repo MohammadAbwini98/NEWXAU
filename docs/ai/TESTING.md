@@ -1,7 +1,8 @@
 # Testing & Validation
 
 ## Existing Framework
-*   **Framework**: `pytest`.
+* **Frameworks**: `pytest` for Python and `vitest` for Electron/React
+  TypeScript.
 *   **Configuration**: `pytest.ini` exists at root.
 *   **Directory**: `tests/` folder.
 
@@ -33,6 +34,31 @@ Focused data-quality, abstention, and backtest-cost validation:
 ```
 
 The data-quality tests use synthetic candles and assert that stale data skips model inference. They make no network or broker calls. Backtest comparisons must declare spread, per-fill slippage, and commission and must not compare new net-R reports directly with legacy cost-free reports.
+
+Focused desktop migration gate:
+
+```powershell
+$env:ENABLE_BACKGROUND_CYCLE_RUNNER='0'
+$env:ENABLE_LIVE_PRICE_STREAM='0'
+$env:CAPITAL_EXECUTION_ENABLED='0'
+$env:CAPITAL_EXECUTION_AUTO_EXECUTE='0'
+$env:CAPITAL_EXECUTION_DEMO_ONLY='1'
+.\.venv\Scripts\python.exe -m pytest tests\test_desktop_runtime.py tests\test_desktop_contract_baseline.py tests\test_execution_control.py tests\test_capital_execution.py tests\test_market_sessions.py -q
+npm run typecheck
+npm test
+npm run build
+npm audit
+```
+
+This gate covers desktop token authentication, WebSocket rejection, runtime
+paths, graceful shutdown authorization, pre-Electron endpoint parity, Capital
+execution safeguards, Control Unit persistence/session behavior, reconnect
+backoff, stale Control Unit response handling, and the renderer-to-backend
+mutation allowlist.
+
+The checked-in Electron headless smoke loads the production renderer, starts and
+stops the owned Python process, verifies backend readiness, and captures visual
+evidence. It never enables Capital.com execution.
 
 ## Adding Tests
 1. Create files in `tests/` named `test_*.py`.

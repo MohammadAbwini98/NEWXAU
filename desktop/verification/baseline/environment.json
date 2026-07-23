@@ -1,0 +1,730 @@
+[
+  {
+    "name": "ADX_THRESHOLD",
+    "default": "20",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:132"
+    ]
+  },
+  {
+    "name": "ATR_MAXIMUM",
+    "default": "1000",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:131"
+    ]
+  },
+  {
+    "name": "ATR_MINIMUM",
+    "default": "0.1",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:130"
+    ]
+  },
+  {
+    "name": "CANDLE_CSV_PATH",
+    "default": null,
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:103"
+    ]
+  },
+  {
+    "name": "CAPITALCOM_STREAM_PING_SECONDS",
+    "default": "540",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:179"
+    ]
+  },
+  {
+    "name": "CAPITALCOM_STREAM_RETRY_SECONDS",
+    "default": "5",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:178"
+    ]
+  },
+  {
+    "name": "CAPITALCOM_STREAM_URL",
+    "default": "wss://api-streaming-capital.backend-capital.com/connect",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:176"
+    ]
+  },
+  {
+    "name": "CAPITAL_ENV",
+    "default": "demo",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:61"
+    ]
+  },
+  {
+    "name": "CAPITAL_ENV_FILE",
+    "default": null,
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:37"
+    ]
+  },
+  {
+    "name": "CAPITAL_EXECUTION_ALLOWED_STATUSES",
+    "default": "RECOMMENDED",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:214"
+    ]
+  },
+  {
+    "name": "CAPITAL_EXECUTION_CONFIRM_ATTEMPTS",
+    "default": "3",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:207"
+    ]
+  },
+  {
+    "name": "CAPITAL_EXECUTION_CONFIRM_DELAY_SECONDS",
+    "default": "0.35",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:208"
+    ]
+  },
+  {
+    "name": "CAPITAL_EXECUTION_CURRENCY_CODE",
+    "default": "USD",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:210"
+    ]
+  },
+  {
+    "name": "CAPITAL_EXECUTION_DEFAULT_SIZE",
+    "default": "0.01",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:201"
+    ]
+  },
+  {
+    "name": "CAPITAL_EXECUTION_MAX_OPEN_POSITIONS",
+    "default": "1",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:205"
+    ]
+  },
+  {
+    "name": "CAPITAL_EXECUTION_MAX_PRICE_DEVIATION",
+    "default": "3.0",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:206"
+    ]
+  },
+  {
+    "name": "CAPITAL_EXECUTION_MAX_SIZE",
+    "default": "0.10",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:202"
+    ]
+  },
+  {
+    "name": "CAPITAL_EXECUTION_MIN_CONFIDENCE",
+    "default": "0",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:220"
+    ]
+  },
+  {
+    "name": "CAPITAL_EXECUTION_MIN_SIZE",
+    "default": "0.01",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:203"
+    ]
+  },
+  {
+    "name": "CAPITAL_EXECUTION_SIZE_STEP",
+    "default": "0.01",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:204"
+    ]
+  },
+  {
+    "name": "DATA_PROVIDER",
+    "default": "capitalcom",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:102"
+    ]
+  },
+  {
+    "name": "DATA_QUALITY_FRESHNESS_MULTIPLIER",
+    "default": "2.5",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:120"
+    ]
+  },
+  {
+    "name": "DATA_QUALITY_MAX_MISSING_RATIO",
+    "default": "0.02",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:114"
+    ]
+  },
+  {
+    "name": "DATA_QUALITY_MAX_OUTLIER_RATIO",
+    "default": "0.01",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:117"
+    ]
+  },
+  {
+    "name": "DATA_QUALITY_MIN_SCORE",
+    "default": "85",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:112"
+    ]
+  },
+  {
+    "name": "ENABLE_BACKGROUND_CYCLE_RUNNER",
+    "default": "1",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:153"
+    ]
+  },
+  {
+    "name": "ENABLE_DYNAMIC_MODEL_WEIGHTS",
+    "default": "1",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:143"
+    ]
+  },
+  {
+    "name": "ENABLE_LIVE_PRICE_STREAM",
+    "default": "1",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:156"
+    ]
+  },
+  {
+    "name": "ENABLE_TELEGRAM_ALERTS",
+    "default": "0",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:181"
+    ]
+  },
+  {
+    "name": "KRONOS_DOWNLOAD_MODEL_ID",
+    "default": null,
+    "secret": false,
+    "references": [
+      "scripts/download_kronos.py:49"
+    ]
+  },
+  {
+    "name": "KRONOS_DOWNLOAD_TOKENIZER_ID",
+    "default": null,
+    "secret": true,
+    "references": [
+      "scripts/download_kronos.py:50"
+    ]
+  },
+  {
+    "name": "LATEST_PRICE_STALE_SECONDS",
+    "default": "120",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:174"
+    ]
+  },
+  {
+    "name": "LIVE_CANDLE_LOOKBACK",
+    "default": "900",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:108"
+    ]
+  },
+  {
+    "name": "LIVE_CYCLE_INTERVAL_SECONDS",
+    "default": "900",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:107"
+    ]
+  },
+  {
+    "name": "LIVE_CYCLE_RETRY_ATTEMPTS",
+    "default": "3",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:109"
+    ]
+  },
+  {
+    "name": "LIVE_CYCLE_RETRY_BACKOFF_SECONDS",
+    "default": "2",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:110"
+    ]
+  },
+  {
+    "name": "LOCAL_POSTGRES_BIN_DIR",
+    "default": null,
+    "secret": false,
+    "references": [
+      "scripts/init_db.py:54"
+    ]
+  },
+  {
+    "name": "LOCAL_POSTGRES_DATA_DIR",
+    "default": null,
+    "secret": false,
+    "references": [
+      "scripts/init_db.py:53"
+    ]
+  },
+  {
+    "name": "LOCAL_POSTGRES_PORT",
+    "default": "55432",
+    "secret": false,
+    "references": [
+      "scripts/init_db.py:55"
+    ]
+  },
+  {
+    "name": "MARKET_CLOSE_BACKTEST_MIN_WINDOW",
+    "default": "80",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:171"
+    ]
+  },
+  {
+    "name": "MARKET_CLOSE_BACKTEST_STEP_SIZE",
+    "default": "20",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:170"
+    ]
+  },
+  {
+    "name": "MARKET_CLOSE_BACKTEST_SYNTHETIC_COUNT",
+    "default": "120",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:167"
+    ]
+  },
+  {
+    "name": "MARKET_CLOSE_BACKTEST_TEST_SIZE",
+    "default": "20",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:169"
+    ]
+  },
+  {
+    "name": "MARKET_CLOSE_BACKTEST_TIMEOUT_SECONDS",
+    "default": "180",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:172"
+    ]
+  },
+  {
+    "name": "MARKET_CLOSE_BACKTEST_TRAIN_SIZE",
+    "default": "90",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:168"
+    ]
+  },
+  {
+    "name": "MARKET_DAILY_BREAK_END",
+    "default": "22:00",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:164"
+    ]
+  },
+  {
+    "name": "MARKET_DAILY_BREAK_START",
+    "default": "21:00",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:163"
+    ]
+  },
+  {
+    "name": "MARKET_HOURS_TIMEZONE",
+    "default": "UTC",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:159"
+    ]
+  },
+  {
+    "name": "MARKET_SUPERVISOR_INTERVAL_SECONDS",
+    "default": "60",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:165"
+    ]
+  },
+  {
+    "name": "MARKET_WEEKLY_CLOSE",
+    "default": "FRI 21:00",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:161"
+    ]
+  },
+  {
+    "name": "MARKET_WEEKLY_OPEN",
+    "default": "SUN 22:00",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:160"
+    ]
+  },
+  {
+    "name": "MINIMUM_FINAL_CONFIDENCE",
+    "default": "0.55",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:125"
+    ]
+  },
+  {
+    "name": "MINIMUM_MODEL_AGREEMENT",
+    "default": "0.55",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:129"
+    ]
+  },
+  {
+    "name": "MINIMUM_RISK_REWARD",
+    "default": "1.5",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:128"
+    ]
+  },
+  {
+    "name": "MIN_OBSERVATIONS_FOR_REWEIGHT",
+    "default": "10",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:151"
+    ]
+  },
+  {
+    "name": "MODEL_ARTIFACTS_DIR",
+    "default": "models",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:104"
+    ]
+  },
+  {
+    "name": "MODEL_WEIGHT_MAX",
+    "default": "0.60",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:139"
+    ]
+  },
+  {
+    "name": "MODEL_WEIGHT_MAX_CHANGE_PER_UPDATE",
+    "default": "0.03",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:140"
+    ]
+  },
+  {
+    "name": "MODEL_WEIGHT_MIN",
+    "default": "0.01",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:138"
+    ]
+  },
+  {
+    "name": "MODEL_WEIGHT_PERFORMANCE_WINDOW",
+    "default": "100",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:141"
+    ]
+  },
+  {
+    "name": "NEWS_AI_API_KEY",
+    "default": null,
+    "secret": true,
+    "references": [
+      "src/gold_signal_system/news_intelligence/ai_analyzer.py:63"
+    ]
+  },
+  {
+    "name": "NEWS_AI_ENDPOINT",
+    "default": "https://api.openai.com/v1/chat/completions",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/news_intelligence/ai_analyzer.py:65"
+    ]
+  },
+  {
+    "name": "NEWS_AI_MODEL",
+    "default": "gpt-4.1-mini",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/news_intelligence/ai_analyzer.py:64"
+    ]
+  },
+  {
+    "name": "NEWS_AI_PROVIDER",
+    "default": "rules",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/news_intelligence/ai_analyzer.py:62"
+    ]
+  },
+  {
+    "name": "NEWS_BLOCK_AFTER_MINUTES",
+    "default": "30",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:136"
+    ]
+  },
+  {
+    "name": "NEWS_BLOCK_BEFORE_MINUTES",
+    "default": "30",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:135"
+    ]
+  },
+  {
+    "name": "NEWS_BLOCK_MODE",
+    "default": "block",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:137"
+    ]
+  },
+  {
+    "name": "NEWS_CAPITAL_EXPORTED_NEWS_PATH",
+    "default": null,
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:241"
+    ]
+  },
+  {
+    "name": "NEWS_CAPITAL_PLATFORM_URL",
+    "default": "https://capital.com/trading/platform",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:242"
+    ]
+  },
+  {
+    "name": "NEWS_CAPITAL_SESSION_STATE_PATH",
+    "default": null,
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:240"
+    ]
+  },
+  {
+    "name": "NEWS_CONFLICT_SIZE_MULTIPLIER",
+    "default": "0.50",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:234"
+    ]
+  },
+  {
+    "name": "NEWS_DEFAULT_VALIDITY_MINUTES",
+    "default": "240",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:235"
+    ]
+  },
+  {
+    "name": "NEWS_MAX_POSITION_MULTIPLIER",
+    "default": "1.05",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:233"
+    ]
+  },
+  {
+    "name": "NEWS_MAX_WEIGHT_HIGH_IMPACT",
+    "default": "0.35",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:232"
+    ]
+  },
+  {
+    "name": "NEWS_MAX_WEIGHT_NORMAL",
+    "default": "0.20",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:231"
+    ]
+  },
+  {
+    "name": "NEWS_MIN_AI_CONFIDENCE",
+    "default": "0.65",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:236"
+    ]
+  },
+  {
+    "name": "NEWS_MIN_RELEVANCE_TO_ANALYZE",
+    "default": "MEDIUM",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:237"
+    ]
+  },
+  {
+    "name": "NEWS_PROVIDER_MODE",
+    "default": "manual",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:133"
+    ]
+  },
+  {
+    "name": "NEWS_PROVIDER_URL",
+    "default": null,
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:134"
+    ]
+  },
+  {
+    "name": "NEWS_RSS_URLS",
+    "default": "",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:238"
+    ]
+  },
+  {
+    "name": "OPENAI_API_KEY",
+    "default": null,
+    "secret": true,
+    "references": [
+      "src/gold_signal_system/news_intelligence/ai_analyzer.py:63"
+    ]
+  },
+  {
+    "name": "POSTGRES_DSN",
+    "default": null,
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:105"
+    ]
+  },
+  {
+    "name": "PREDICTION_HORIZON_CANDLES",
+    "default": "6",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:100"
+    ]
+  },
+  {
+    "name": "RECOMMENDED_SCORE",
+    "default": "75",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:126"
+    ]
+  },
+  {
+    "name": "REPORTS_DIR",
+    "default": "reports",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:122"
+    ]
+  },
+  {
+    "name": "STRATEGY_VERSION",
+    "default": "strategy_v1",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:123"
+    ]
+  },
+  {
+    "name": "TELEGRAM_BOT_TOKEN",
+    "default": null,
+    "secret": true,
+    "references": [
+      "src/gold_signal_system/config.py:183"
+    ]
+  },
+  {
+    "name": "TELEGRAM_CHAT_ID",
+    "default": null,
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:184"
+    ]
+  },
+  {
+    "name": "THRESHOLD_PROFILE_NAME",
+    "default": "default",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:124"
+    ]
+  },
+  {
+    "name": "WEAK_RECOMMENDATION_SCORE",
+    "default": "60",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:127"
+    ]
+  },
+  {
+    "name": "WEBSOCKET_HEARTBEAT_SECONDS",
+    "default": "30",
+    "secret": false,
+    "references": [
+      "src/gold_signal_system/config.py:173"
+    ]
+  }
+]

@@ -1,0 +1,66 @@
+[
+  {
+    "path": "db/001_signal_lifecycle.sql",
+    "sha256": "ecb037ba01c2a2659e17c75866cb828ad001b74831362516534f083d9ad6f307"
+  },
+  {
+    "path": "db/002_improvement_roadmap.sql",
+    "sha256": "f8d66f74a89611f4be3fd0774d819a951ed70596fa941d39604a5b3cb8750d2d"
+  },
+  {
+    "path": "db/003_production_hardening.sql",
+    "sha256": "d58f3d05b6a0a7ba82e0d15d5c6954c1ebeb70d03c5372498a2e9bc3b0e569a4"
+  },
+  {
+    "path": "db/004_backtest_persistence.sql",
+    "sha256": "a47618e02efbff696b8af9cadfebfbc7106d21f3503dfc53aa532586d7886ba4"
+  },
+  {
+    "path": "db/005_persistent_runtime_state.sql",
+    "sha256": "9f66be2d8567ebaa81e8d0e414e604b65e29cacf99d4e4c6ffd900d86766fb89"
+  },
+  {
+    "path": "db/006_capital_execution.sql",
+    "sha256": "54a9ab6dd299ff03540191572953dbecc6f31cf57e0a03ae2721a2d619bcd79d"
+  },
+  {
+    "path": "db/007_signal_history_indexes.sql",
+    "sha256": "9d5ab7f9f0652fb8804c4e3b51dfe91f29baa9e7ced775ab78b51eb4a42da2cc"
+  },
+  {
+    "path": "db/008_live_price_memory_only.sql",
+    "sha256": "2294430b85685d84d29f7cb7a0be5329b70267a6f8024e4b46b8714eff2acefb"
+  },
+  {
+    "path": "db/009_news_intelligence.sql",
+    "sha256": "04cb790fb2489e1c5ecef02f3d8f3cda2b512b38cfa5159af27d84fe6b995b56"
+  },
+  {
+    "path": "db/010_execution_control.sql",
+    "sha256": "6c4d9c7257965cc945d775119d41e6b7a7f7b89ad35c078f85dbc0bf0d10f48b"
+  },
+  {
+    "path": "db/schema.sql",
+    "sha256": "238aa0d399b0d63a87e37e856379993734ed3c7a91a0047ce7abab37b4e386ec"
+  },
+  {
+    "path": "src/gold_signal_system/api.py",
+    "sha256": "309cef3ce172ebb45c7c7664607d7aba5da7840b86170822f0d1da265d1b80ce"
+  },
+  {
+    "path": "src/gold_signal_system/capital_execution.py",
+    "sha256": "ada7a85bdc198cd950e5f8c31ed8e1f642a925411ed6d7f39912744ebfde3f6f"
+  },
+  {
+    "path": "src/gold_signal_system/contracts.py",
+    "sha256": "6d8ee16560fef3c9c8e3e318083cdc91acba21dc1a332548ab29d362beb19bd6"
+  },
+  {
+    "path": "src/gold_signal_system/execution_control.py",
+    "sha256": "14772ca774913965324536a6d8c780c6b3db768430f9faf843c0407015871e62"
+  },
+  {
+    "path": "src/gold_signal_system/market_sessions.py",
+    "sha256": "937992268b58e0e4a6e3211aca778ad9904f33ba210cc841be82c4374dd7c2ab"
+  }
+]
