@@ -1,0 +1,26 @@
+---
+description: Trading pipeline and decision-boundary rules
+globs:
+  - "src/gold_signal_system/pipeline.py"
+  - "src/gold_signal_system/data_engine.py"
+  - "src/gold_signal_system/indicator_engine.py"
+  - "src/gold_signal_system/smc_engine.py"
+  - "src/gold_signal_system/model_ensemble.py"
+  - "src/gold_signal_system/dynamic_weights.py"
+  - "src/gold_signal_system/strategy_brain.py"
+  - "src/gold_signal_system/trade_plan_engine.py"
+  - "src/gold_signal_system/risk_engine.py"
+  - "src/gold_signal_system/recommendation_builder.py"
+  - "src/gold_signal_system/multi_timeframe.py"
+alwaysApply: false
+---
+
+# Trading Pipeline Rules
+
+Preserve Data -> Indicators / SMC / market context -> Model ensemble -> Strategy -> Trade plan -> Risk -> Execution control -> Storage / optional execution.
+
+- Do not bypass downstream validation or execute directly from model output.
+- Preserve deterministic safe model fallback.
+- Keep timestamps timezone-aware and prevent look-ahead bias.
+- Keep model votes, strategy decisions, trade levels, and risk decisions auditable.
+- Add regression tests for changed signal behavior.

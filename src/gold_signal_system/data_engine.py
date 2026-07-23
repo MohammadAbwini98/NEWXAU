@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from datetime import UTC, datetime, timedelta
+from statistics import median
 from typing import Iterable, Optional
 
 from dateutil import parser
@@ -59,11 +60,21 @@ def _floor_time(timestamp: datetime, timeframe: str) -> datetime:
 class DataEngine:
     """Phase 1: collect, clean, validate, and aggregate candle data."""
 
+    @staticmethod
+    def timeframe_seconds(timeframe: str) -> float:
+        return timeframe_to_delta(timeframe).total_seconds()
+
     def clean_candles(
         self,
         raw_candles: Iterable[dict],
         instrument: str,
         timeframe: str,
+        reference_time: datetime | None = None,
+        provider_status: str = "UNKNOWN",
+        max_missing_ratio: float = 0.02,
+        max_outlier_ratio: float = 0.01,
+        max_freshness_seconds: float | None = None,
+        minimum_quality_score: float = 85.0,
     ) -> tuple[list[Candle], DataQualityReport]:
         raw_rows = list(raw_candles)
         parsed: list[Candle] = []
@@ -87,6 +98,14 @@ class DataEngine:
                 invalid_rows += 1
                 issues.append(f"Row {idx} invalid: {exc}")
 
+        out_of_order_count = sum(
+            1
+            for previous, current in zip(parsed, parsed[1:])
+            if current.candle_time < previous.candle_time
+        )
+        if out_of_order_count:
+            issues.append(f"Out-of-order candles detected: {out_of_order_count}")
+
         parsed.sort(key=lambda c: c.candle_time)
 
         deduped: list[Candle] = []
@@ -104,6 +123,62 @@ class DataEngine:
         if missing_timestamps:
             issues.append(f"Missing candles detected: {len(missing_timestamps)}")
 
+        outlier_count = self.detect_price_outliers(deduped)
+        if outlier_count:
+            issues.append(f"Price outliers detected: {outlier_count}")
+
+        freshness_seconds: float | None = None
+        if reference_time is not None and deduped:
+            normalized_reference = normalize_timestamp(reference_time)
+            freshness_seconds = max(0.0, (normalized_reference - deduped[-1].candle_time).total_seconds())
+
+        expected_rows = len(deduped) + len(missing_timestamps)
+        missing_ratio = len(missing_timestamps) / max(expected_rows, 1)
+        outlier_ratio = outlier_count / max(len(deduped), 1)
+        invalid_ratio = invalid_rows / max(len(raw_rows), 1)
+        duplicate_ratio = duplicate_rows / max(len(raw_rows), 1)
+
+        blocking_reasons: list[str] = []
+        normalized_provider_status = str(provider_status or "UNKNOWN").strip().upper()
+        if not deduped:
+            blocking_reasons.append("No valid candles are available.")
+        if normalized_provider_status in {"FAILED", "UNAVAILABLE", "ERROR"}:
+            blocking_reasons.append(f"Provider status is {normalized_provider_status}.")
+        if missing_ratio > max_missing_ratio:
+            blocking_reasons.append(
+                f"Missing-candle ratio {missing_ratio:.2%} exceeds {max_missing_ratio:.2%}."
+            )
+        if outlier_ratio > max_outlier_ratio:
+            blocking_reasons.append(
+                f"Price-outlier ratio {outlier_ratio:.2%} exceeds {max_outlier_ratio:.2%}."
+            )
+        if (
+            max_freshness_seconds is not None
+            and freshness_seconds is not None
+            and freshness_seconds > max_freshness_seconds
+        ):
+            blocking_reasons.append(
+                f"Latest candle is stale ({freshness_seconds:.1f}s > {max_freshness_seconds:.1f}s)."
+            )
+
+        quality_score = 100.0
+        quality_score -= min(45.0, missing_ratio * 500.0)
+        quality_score -= min(25.0, invalid_ratio * 250.0)
+        quality_score -= min(15.0, duplicate_ratio * 150.0)
+        quality_score -= min(25.0, outlier_ratio * 250.0)
+        quality_score -= min(10.0, out_of_order_count / max(len(parsed), 1) * 100.0)
+        if (
+            max_freshness_seconds is not None
+            and freshness_seconds is not None
+            and freshness_seconds > max_freshness_seconds
+        ):
+            quality_score -= 25.0
+        quality_score = round(max(0.0, quality_score), 2)
+        if quality_score < minimum_quality_score:
+            blocking_reasons.append(
+                f"Data quality score {quality_score:.2f} is below {minimum_quality_score:.2f}."
+            )
+
         report = DataQualityReport(
             total_rows=len(raw_rows),
             cleaned_rows=len(deduped),
@@ -112,6 +187,14 @@ class DataEngine:
             missing_candles_count=len(missing_timestamps),
             missing_timestamps=missing_timestamps,
             issues=issues,
+            quality_score=quality_score,
+            freshness_seconds=freshness_seconds,
+            missing_candles=len(missing_timestamps),
+            duplicate_candles=duplicate_rows,
+            outlier_count=outlier_count,
+            out_of_order_count=out_of_order_count,
+            provider_status=normalized_provider_status,
+            blocking_reasons=blocking_reasons,
         )
 
         return deduped, report
@@ -132,10 +215,31 @@ class DataEngine:
             expected += delta
         return missing
 
+    def detect_price_outliers(self, candles: list[Candle]) -> int:
+        """Return a robust count of extreme close-to-close moves.
+
+        The median absolute deviation adapts to the current series and the 1% floor
+        avoids labelling ordinary low-volatility price changes as corrupt data.
+        """
+        if len(candles) < 5:
+            return 0
+        returns = [
+            abs((current.close - previous.close) / previous.close)
+            for previous, current in zip(candles, candles[1:])
+            if previous.close != 0
+        ]
+        if not returns:
+            return 0
+        center = median(returns)
+        mad = median(abs(value - center) for value in returns)
+        threshold = max(0.01, center + 12.0 * max(mad, 1e-9))
+        return sum(1 for value in returns if value > threshold)
+
     def aggregate_from_1m(
         self,
         candles_1m: list[Candle],
         target_timeframe: str,
+        require_complete: bool = False,
     ) -> list[Candle]:
         if target_timeframe not in ("5m", "15m", "30m", "1h", "4h"):
             raise ValueError("target_timeframe must be one of 5m, 15m, 30m, 1h, 4h")
@@ -151,8 +255,16 @@ class DataEngine:
             grouped[bucket].append(candle)
 
         aggregated: list[Candle] = []
+        expected_count = int(timeframe_to_delta(target_timeframe) / timeframe_to_delta("1m"))
         for bucket in sorted(grouped.keys()):
             chunk = sorted(grouped[bucket], key=lambda c: c.candle_time)
+            if require_complete:
+                expected_times = {
+                    bucket + (timeframe_to_delta("1m") * offset)
+                    for offset in range(expected_count)
+                }
+                if len(chunk) != expected_count or {c.candle_time for c in chunk} != expected_times:
+                    continue
             aggregated.append(
                 Candle(
                     instrument=chunk[0].instrument,

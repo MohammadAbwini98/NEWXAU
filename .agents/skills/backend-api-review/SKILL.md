@@ -25,7 +25,7 @@ When modifying `api.py`, background tasks, or `contracts.py`:
 - API calls that modify database state must cleanly rollback if an error occurs mid-flight.
 
 ## Integration Rules
-- When modifying Capital.com API logic, test against a mock or ensure `CAPITAL_EXECUTION_DEMO_ONLY=1`.
+- When modifying Capital.com API logic, use mocked clients and preserve `CAPITAL_EXECUTION_DEMO_ONLY=1`; never access a real provider during validation.
 
 ## Backward Compatibility Rules
 - Do not break existing API contracts that the frontend dashboard relies on. If a field changes, deprecate the old one slowly.

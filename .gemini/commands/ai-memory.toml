@@ -9,6 +9,8 @@ First run this local check and use the result as context:
 
 Then inspect recent changes and update only relevant files:
 
+- docs/ai/README.md
+- docs/ai/HANDOFF.md
 - docs/ai/TASK_LOG.md
 - docs/ai/CURRENT_STATE.md
 - docs/ai/FEATURES.md

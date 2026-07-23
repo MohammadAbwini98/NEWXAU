@@ -12,7 +12,8 @@ When working on test coverage in `tests/`:
 - Use `pytest` fixtures for common mock data (candles, signals).
 
 ## Integration Test Rules
-- If testing database interactions, use a temporary SQLite DB or a transaction that rolls back immediately.
+- Test persistence with mocked/in-memory storage or an explicitly approved disposable PostgreSQL instance; do not substitute SQLite for PostgreSQL semantics.
+- Mock all Capital.com, news, and AI provider calls.
 
 ## API Test Rules
 - Use FastAPI's `TestClient` to validate HTTP endpoints.
@@ -22,7 +23,7 @@ When working on test coverage in `tests/`:
 - Frontend tests are largely manual right now. See `frontend-ui-review` skill.
 
 ## Manual Validation Rules
-- Provide clear instructions for the user to run scripts (e.g., `python scripts/run_cycle.py`) and verify log output.
+- Provide safe manual instructions, but do not recommend live provider cycles, broker execution, or database migration unless the user explicitly authorizes them.
 
 ## Regression Checklist
 - Run `python -m pytest tests/` before and after changes.

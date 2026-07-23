@@ -261,6 +261,33 @@ class ExecutionControlIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(current["config"]["allowed_directions"]["SELL"])
         self.assertIn("decision_summary", stats)
 
+    async def test_api_round_trip_preserves_all_dashboard_checkbox_values(self) -> None:
+        runtime = RuntimeConfig(data_provider="synthetic", postgres_dsn=None, capital_execution_enabled=False)
+        api.runtime = runtime
+        api.system = GoldSignalSystem(runtime=runtime)
+        api.execution_service = CapitalExecutionService(runtime, api.system.storage, client=FakeExecutionClient())
+
+        expected = ExecutionControlConfig(
+            enabled=False,
+            allowed_sessions={
+                "DAILY_BREAK": True,
+                "ASIA_LOW": False,
+                "LONDON_ACTIVE": True,
+                "US_OVERLAP": False,
+                "NY_ACTIVE": True,
+            },
+            allowed_directions={"BUY": False, "SELL": True},
+            require_ensemble_opposite_or_tie=True,
+            apply_to_auto=False,
+            apply_to_manual=True,
+        )
+
+        updated = await api.update_execution_control(expected)
+        current = await api.get_execution_control()
+
+        self.assertEqual(updated["config"], expected.model_dump(mode="json"))
+        self.assertEqual(current["config"], expected.model_dump(mode="json"))
+
     async def test_capital_execution_is_blocked_by_disabled_direction(self) -> None:
         storage = InMemoryStorage()
         control = ExecutionControlService(storage)

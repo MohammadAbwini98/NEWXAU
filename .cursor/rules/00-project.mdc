@@ -1,0 +1,29 @@
+---
+description: NEWXAU project-wide AI guidance
+alwaysApply: true
+---
+
+# NEWXAU Project Rule
+
+NEWXAU is an XAUUSD signal recommendation, backtesting, paper-trading, and guarded Capital.com execution system.
+
+Before editing:
+
+- Read `AGENTS.md`, `docs/ai/README.md`, `docs/ai/CURRENT_STATE.md`, and `docs/ai/HANDOFF.md`.
+- Read only task-relevant extra docs and skills.
+- Inspect `git status --short --branch`.
+
+Rules:
+
+- Keep changes minimal and scoped; preserve pipeline boundaries and XAUUSD defaults.
+- Preserve PostgreSQL-to-memory fallback and Vanilla JS dashboard compatibility.
+- Never expose secrets or broker sessions.
+- Do not edit `vendor/Kronos` unless explicitly requested.
+- Do not alter model artifacts, datasets, runtime state, or generated exports unless specifically required.
+
+After meaningful changes:
+
+- Run relevant safe verification.
+- Update `docs/ai/TASK_LOG.md` and only memory files whose facts changed.
+- Update `docs/ai/HANDOFF.md` if work is paused or transferred.
+- Run `node scripts/ai-memory/check-memory.mjs`.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Market Session Change"
+  short_description: "Protect Jordan-time XAUUSD session behavior"
+  default_prompt: "Use $market-session-change to implement or review an XAUUSD market-session change safely."

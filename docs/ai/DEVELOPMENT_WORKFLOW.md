@@ -1,14 +1,15 @@
 # Development Workflow
 
-Last updated: 2026-06-30
+Last updated: 2026-07-21
 
 ## How Agents Should Start Work
 
 1. Read `AGENTS.md`.
-2. Read relevant `docs/ai/` files.
-3. Inspect the relevant source files before changing them.
-4. Run focused baseline validation when practical.
-5. Confirm current behavior with tests, scripts, or static review before modifying production paths.
+2. Read `docs/ai/README.md`, `docs/ai/CURRENT_STATE.md`, and `docs/ai/HANDOFF.md`.
+3. Read only task-relevant memory and `.agents/skills/` procedures.
+4. Inspect the working tree and relevant source files before changing them.
+5. Run focused baseline validation when practical.
+6. Confirm current behavior with tests, scripts, or static review before modifying production paths.
 
 ## How To Make Safe Changes
 
@@ -27,6 +28,7 @@ Last updated: 2026-06-30
 3. Update other memory files when behavior, commands, architecture, or risks changed.
 4. Run `node scripts\ai-memory\check-memory.mjs`.
 5. Summarize changed files, validations, and remaining risks.
+6. Update `docs/ai/HANDOFF.md` only when work is paused, blocked, or transferred.
 
 ## Common Validation Path
 

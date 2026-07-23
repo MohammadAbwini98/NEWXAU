@@ -1,0 +1,14 @@
+description = "Capture the active NEWXAU task for another agent or human."
+
+prompt = """
+Follow `.agents/skills/agent-handoff/SKILL.md`.
+
+Update `docs/ai/HANDOFF.md` with verified objective, completed work, in-progress work, blockers, next safe actions, changed files, verification, and safety notes.
+
+Do not include secrets, raw environment values, tokens, DSNs, or sensitive broker payloads.
+
+Run:
+!{node scripts/ai-memory/check-memory.mjs}
+
+Return a concise handoff summary.
+"""

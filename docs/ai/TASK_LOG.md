@@ -1,5 +1,45 @@
 # Task Log
 
+## 2026-07-21 - NEWXAU AI Agent Architecture Hardening
+
+### Task
+
+Strengthened the cross-agent architecture for Claude Code, Codex, Gemini/Antigravity, Cursor, future agents, and human handoffs without changing trading runtime behavior.
+
+### Baseline Findings
+
+- Preserved the existing `docs/ai/` memory and root agent files.
+- Confirmed missing memory index, active handoff, Cursor rules, handoff/takeoff adapters, and domain procedures.
+- Confirmed stale ETHUSD wording, stale dashboard paths, SQLite test guidance, a tracked transient Claude lock, and dormant Playwright guidance.
+- Verified execution-disabled/demo-only defaults, Control Unit preflight, PostgreSQL/in-memory fallback, model fallback, UTC storage, and `Asia/Amman` session priority from source.
+
+### Files Changed
+
+- Root and hygiene: `.gitignore`, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, removed `.claude/scheduled_tasks.lock`.
+- Memory: added `docs/ai/README.md` and `docs/ai/HANDOFF.md`; updated architecture, coding rules, commands, current state, decisions, development workflow, and this task log.
+- Canonical procedures: added handoff/takeoff, feature, bug-fix, pipeline, execution, model, news, session, performance, security, docs, refactor, and PR-review skills under `.agents/skills/`; updated existing skills and workflows.
+- Tool adapters: added Cursor rules, Claude commands/skills, and Gemini handoff/takeoff commands.
+- Validation tooling: strengthened `scripts/ai-memory/check-memory.mjs` and generated standard `agents/openai.yaml` metadata for new canonical skills.
+
+### Verification
+
+- `node --check scripts\ai-memory\check-memory.mjs` — passed.
+- `node scripts\ai-memory\check-memory.mjs` — passed.
+- Standard skill validation — all 21 canonical skill directories and 14 Claude skill wrappers passed.
+- Independent read-only forward-test — completed; staged/untracked handoff capture, empty-handoff stopping, and live-vs-mocked broker wording were tightened from its findings.
+- Python compile/tests — skipped because only AI-memory, adapter, checker, and ignore files changed.
+
+### Runtime Impact
+
+- Trading runtime behavior changed: No.
+- Capital.com request made: No.
+- Database migration executed: No.
+- Model artifact/submodule changed: No.
+
+### Remaining Work
+
+- Tool-native command discovery should be smoke-tested manually in installed Claude, Gemini/Antigravity, and Cursor environments; repository structure and static validation are complete.
+
 ## 2026-07-21 - Initial GitHub Publication
 
 ### Agent / Tool
@@ -467,3 +507,82 @@ The setup script now auto-detects NEWXAU, writes project-specific memory docs, p
 ### Remaining Notes
 
 Use `--force` only to repair generated memory docs/skills. Use `--force --force-agent-files` only when intentionally replacing the protected agent instruction files.
+
+## 2026-07-21 - Data Quality Gate, Pipeline Timing, and Cost-Aware Backtest Audit
+
+### Agent / Tool
+
+Codex
+
+### Task
+
+Audited trading-intelligence reliability, established focused test/latency/report baselines, and implemented the smallest evidence-backed P0/P1 safety corrections.
+
+### Files Created / Updated
+
+- `src/gold_signal_system/config.py`
+- `src/gold_signal_system/contracts.py`
+- `src/gold_signal_system/data_engine.py`
+- `src/gold_signal_system/model_ensemble.py`
+- `src/gold_signal_system/pipeline.py`
+- `src/gold_signal_system/backtesting.py`
+- `src/gold_signal_system/api.py`
+- `tests/test_data_quality_gate.py`
+- `docs/ai/ENHANCEMENT_AUDIT_2026-07-21.md`
+- `docs/ai/EXPERIMENTS.md`
+- `docs/ai/README.md`
+- `docs/ai/CURRENT_STATE.md`
+- `docs/ai/FEATURES.md`
+- `docs/ai/ARCHITECTURE.md`
+- `docs/ai/TESTING.md`
+- `docs/ai/DECISIONS.md`
+- `docs/ai/TASK_LOG.md`
+
+### Summary
+
+Added always-on data-quality and pipeline-timing telemetry plus a default-off fail-closed gate that filters incomplete derived buckets, skips model inference, retains model weights, and returns deterministic HOLD abstentions. Corrected the legacy backtest to apply spread, round-trip slippage, and commission and to expose gross/net R, costs, and blocked-signal counts. Execution remains disabled by default and demo-only guarded. No broker, migration, model download, or destructive database action was performed.
+
+### Checks Run
+
+- Baseline: 9 focused tests passed plus 13 market-session subtests.
+- `.\.venv\Scripts\python.exe -m compileall -q src tests`
+- Combined focused validation: 39 tests passed plus 13 market-session subtests (four existing FastAPI `on_event` deprecation warnings).
+- `node scripts/ai-memory/check-memory.mjs`
+
+### Remaining Notes
+
+The quality gate is intentionally disabled by default. Rerun time-ordered, cost-aware out-of-sample/walk-forward evaluation and sustained paper/demo validation before any promotion or profitability claim. Existing mock walk-forward reports are not comparable to new cost-aware output.
+
+## 2026-07-21 - Control Unit Checkbox State Race Fix
+
+### Agent / Tool
+
+Codex
+
+### Task
+
+Fixed Control Unit checkboxes that reverted immediately after being selected.
+
+### Files Created / Updated
+
+- `src/gold_signal_system/dashboard_static/index.html`
+- `tests/test_execution_control.py`
+- `tests/test_dashboard_startup.py`
+- `docs/ai/CURRENT_STATE.md`
+- `docs/ai/TASK_LOG.md`
+
+### Summary
+
+The API correctly persisted checkbox values; the dashboard could overwrite a new selection with an older asynchronous refresh or overlapping save response. Control Unit changes now update local state immediately, serialize saves, reject stale refresh/save responses, preserve rapid multi-checkbox edits, and expose accessible Saving/Saved/error feedback. Broker eligibility, DAILY_BREAK behavior, execution defaults, and demo-only protection were not changed.
+
+### Checks Run
+
+- Baseline: `21` focused Control Unit/dashboard tests passed after regression coverage was added (`19` passed before the fix).
+- `.\.venv\Scripts\python.exe -m compileall -q src tests`
+- `.\.venv\Scripts\python.exe -m pytest -q tests/test_execution_control.py tests/test_dashboard_startup.py`
+- Dashboard inline JavaScript parsed successfully with Node `new Function()` validation.
+- `node scripts/ai-memory/check-memory.mjs`
+
+### Remaining Notes
+
+Manual browser verification is still recommended after restarting the API: toggle several session, direction, and policy checkboxes quickly and confirm each stays selected after the `Saved` message and a manual Refresh. No live broker request is needed for this check.

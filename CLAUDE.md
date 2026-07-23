@@ -3,6 +3,9 @@
 Always read and follow:
 
 @AGENTS.md
+@docs/ai/README.md
+@docs/ai/CURRENT_STATE.md
+@docs/ai/HANDOFF.md
 
 Use these additional files when relevant:
 

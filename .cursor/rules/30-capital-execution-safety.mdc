@@ -1,0 +1,21 @@
+---
+description: Capital.com and Control Unit safety rules
+globs:
+  - "src/gold_signal_system/capital_execution.py"
+  - "src/gold_signal_system/execution_control.py"
+  - "src/gold_signal_system/live_control.py"
+  - "src/gold_signal_system/capital_stream.py"
+  - "tests/test_capital_execution.py"
+  - "tests/test_execution_control.py"
+  - "tests/test_capital_stream.py"
+alwaysApply: false
+---
+
+# Capital.com Execution Safety
+
+- Never remove disabled-by-default behavior or weaken `CAPITAL_EXECUTION_DEMO_ONLY=1`.
+- Never use real credentials or call a live broker in verification.
+- Preserve direction, status, confidence, risk, expiry, price freshness/deviation, Control Unit, account-selection, position-limit, and idempotency checks.
+- Preserve forced account selection, account validation, and bounded 401 re-authentication.
+- Never log CST, X-SECURITY-TOKEN, passwords, API keys, or full sensitive broker responses.
+- Mock Capital.com in tests; execution changes require focused execution and Control Unit tests.

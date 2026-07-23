@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pull Request Review"
+  short_description: "Review NEWXAU changes against safeguards"
+  default_prompt: "Use $pr-review to review a NEWXAU pull request for correctness and safety."

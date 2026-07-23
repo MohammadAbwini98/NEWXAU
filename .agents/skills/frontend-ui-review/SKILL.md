@@ -1,11 +1,11 @@
 ---
 name: frontend-ui-review
-description: Use when modifying frontend screens, dashboards, UI/UX, CSS, components, forms, charts, notifications, or layouts in src/dashboard_static/.
+description: Use when modifying frontend screens, dashboards, UI/UX, CSS, components, forms, charts, notifications, or layouts in src/gold_signal_system/dashboard_static/.
 ---
 
 # Frontend UI Review Skill
 
-When modifying the Vanilla JS/HTML dashboard located in `src/dashboard_static/`:
+When modifying the Vanilla JS/HTML dashboard located in `src/gold_signal_system/dashboard_static/`:
 
 ## UI Consistency Rules
 - Maintain the existing styling (Vanilla CSS).

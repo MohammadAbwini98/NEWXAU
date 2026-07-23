@@ -1,0 +1,4 @@
+interface:
+  display_name: "News Intelligence"
+  short_description: "Safely modify NEWXAU news intelligence"
+  default_prompt: "Use $news-intelligence to work on NEWXAU news intelligence with conservative provider fallbacks."

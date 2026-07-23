@@ -25,6 +25,15 @@ Focused Control Unit validation:
 .\.venv\Scripts\python.exe -m pytest tests\test_dashboard_startup.py tests\test_execution_control.py -q
 ```
 
+Focused data-quality, abstention, and backtest-cost validation:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests\test_data_quality_gate.py -q
+.\.venv\Scripts\python.exe -m pytest tests\test_pipeline.py::GoldSignalSystemTests::test_phase1_clean_and_aggregate tests\test_pipeline.py::GoldSignalSystemTests::test_end_to_end_recommendation_shape -q
+```
+
+The data-quality tests use synthetic candles and assert that stale data skips model inference. They make no network or broker calls. Backtest comparisons must declare spread, per-fill slippage, and commission and must not compare new net-R reports directly with legacy cost-free reports.
+
 ## Adding Tests
 1. Create files in `tests/` named `test_*.py`.
 2. Use mocking (`unittest.mock.MagicMock` or `patch`) for external API calls (e.g., Capital.com) and DB layers when writing unit tests.
@@ -33,7 +42,8 @@ Focused Control Unit validation:
 ## Validation Checklists
 
 ### Manual Validation
-- Run `python scripts/run_cycle.py` and ensure a full signal is generated without stack traces.
+- Prefer `python scripts/run_cycle.py --mock` for local signal-cycle validation.
+- Run a real provider cycle only with explicit authorization and confirmed safe configuration; never use live broker execution as routine validation.
 - Open `http://127.0.0.1:8000/` and verify the dashboard loads, charts render, and websocket connects.
 
 ### API Validation
@@ -50,7 +60,7 @@ Focused Control Unit validation:
 
 ### Database Validation
 - Ensure new tables or columns are added to `db/schema.sql`.
-- Run `python scripts/init_db.py` to confirm the schema applies cleanly.
+- Run `python scripts/init_db.py` only against an explicitly approved disposable/local PostgreSQL database, never an unknown or production database.
 
 ### What if no tests exist for a feature?
 *   Write them! Do not add new engines without at least a happy-path unit test.

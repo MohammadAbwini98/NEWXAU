@@ -10,7 +10,7 @@ You maintain the repository AI memory system.
 
 ## Procedure
 
-1. Inspect recent project changes.
+1. Read `docs/ai/README.md`, `docs/ai/CURRENT_STATE.md`, and `docs/ai/HANDOFF.md`, then inspect recent project changes.
 2. Identify whether changes affect project state, features, architecture, commands, tests, security, known issues, decisions, or agent instructions.
 3. Always update docs/ai/TASK_LOG.md.
 4. Update docs/ai/CURRENT_STATE.md when behavior, implementation status, risks, or incomplete work changed.
@@ -19,7 +19,8 @@ You maintain the repository AI memory system.
 7. Update docs/ai/COMMANDS.md only when commands or scripts changed.
 8. Update docs/ai/KNOWN_ISSUES.md only when a real issue, fragile area, missing test, or repeated trap was found.
 9. Update docs/ai/DECISIONS.md when a meaningful technical/product decision was made.
-10. Never copy secrets into Markdown files.
+10. Update `docs/ai/HANDOFF.md` only when work is paused, blocked, or transferred.
+11. Never copy secrets into Markdown files.
 
 ## Verification
 

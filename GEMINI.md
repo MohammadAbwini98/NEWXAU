@@ -3,6 +3,9 @@
 Always read and follow:
 
 @AGENTS.md
+@docs/ai/README.md
+@docs/ai/CURRENT_STATE.md
+@docs/ai/HANDOFF.md
 
 Use these additional files when relevant:
 
@@ -31,7 +34,7 @@ Use these additional files when relevant:
 *   Always respect `POSTGRES_DSN` vs memory fallback behavior.
 
 ## Known Project Facts (Discovered via codebase review)
-- This is a Signal Recommendation System, natively handling ETHUSD (per README) but project name is NEWXAU (Postgres schema is `newxau`).
+- This is an XAUUSD Signal Recommendation System named NEWXAU (PostgreSQL schema is normally `newxau`).
 - Technologies: Python, FastAPI, Websockets, Uvicorn, PostgreSQL, Vanilla JS Dashboard.
 - Machine Learning: TCN, LightGBM, PatchTST, CNN-LSTM, NHITS, Kronos.
 - Scripts to run: `scripts/run_api.py`, `scripts/run_cycle.py`, etc.

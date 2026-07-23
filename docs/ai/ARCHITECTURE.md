@@ -5,7 +5,9 @@ This is a modular, pipeline-driven trading application. Data flows sequentially 
 
 ```mermaid
 graph TD;
-    DataEngine-->IndicatorEngine;
+    DataEngine-->DataQualityGate;
+    DataQualityGate-- pass/monitor -->IndicatorEngine;
+    DataQualityGate-- blocked -->ModelAbstention;
     IndicatorEngine-->ModelEnsemble;
     ModelEnsemble-->StrategyBrain;
     StrategyBrain-->TradePlanEngine;
@@ -14,6 +16,14 @@ graph TD;
     ExecutionControl-->Storage/Execution;
 ```
 
+## Data Quality and Abstention Flow
+
+* `DataEngine.clean_candles()` validates ordering, duplicates, missing timestamps, OHLC rows, robust price outliers, and optional wall-clock freshness.
+* Direct historical cycles omit the wall-clock reference so old but valid replay data is not marked stale. Live provider cycles pass a UTC reference and provider status.
+* Incomplete higher-timeframe buckets are measured on every 1m cycle. They are filtered when `ENABLE_DATA_QUALITY_GATE=1`.
+* If the enabled gate has blocking reasons, pipeline adapters are skipped and `ModelEnsembleEngine.build_abstain_predictions()` supplies deterministic HOLD contracts. Existing dynamic weights are retained.
+* Quality results and pre-persistence stage timings live inside `signal_snapshots.risk_filters_json`; cycle API payloads also return the quality report and complete timing map.
+
 ## Backend Structure
 *   **Language**: Python 3.10+
 *   **Framework**: FastAPI + Uvicorn
@@ -21,8 +31,7 @@ graph TD;
 *   **Event Flow**: `event_bus.py` provides pub/sub. Background runner emits cycle updates to the bus, which the websocket pushes to clients.
 
 ## Frontend Structure
-*   Vanilla JS / HTML / CSS located in `src/dashboard_static/`.
-*   Located in `src/gold_signal_system/dashboard_static/`.
+*   Vanilla JS / HTML / CSS located in `src/gold_signal_system/dashboard_static/`.
 *   Connects to `/api` endpoints for historical REST queries.
 *   Connects to `/ws/events` for live streaming updates.
 

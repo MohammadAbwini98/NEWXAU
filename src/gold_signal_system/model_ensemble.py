@@ -181,6 +181,34 @@ class ModelEnsembleEngine:
         model_names = list(enabled_models) if enabled_models else self.active_model_names
         return [self._predict_for_model(name, snapshot, features, ts, candles=candles) for name in model_names]
 
+    def build_abstain_predictions(
+        self,
+        snapshot: IndicatorSnapshot,
+        prediction_time: datetime | None = None,
+        enabled_models: Iterable[str] | None = None,
+    ) -> list[ModelPrediction]:
+        """Create deterministic HOLD votes without invoking model adapters."""
+        ts = (prediction_time or datetime.now(tz=UTC)).astimezone(UTC)
+        model_names = list(enabled_models) if enabled_models else self.active_model_names
+        return [
+            ModelPrediction(
+                model_name=name.upper() if name != "lightgbm" else "LightGBM",
+                model_version="DATA_QUALITY_ABSTAIN",
+                instrument=snapshot.instrument,
+                timeframe=snapshot.timeframe,
+                prediction_time=ts,
+                signal=SignalDirection.HOLD,
+                buy_probability=0.0,
+                sell_probability=0.0,
+                hold_probability=1.0,
+                confidence=1.0,
+                expected_return=0.0,
+                expected_range=0.0,
+                prediction_horizon_candles=self.runtime.prediction_horizon_candles,
+            )
+            for name in model_names
+        ]
+
     def build_ensemble(
         self,
         predictions: list[ModelPrediction],

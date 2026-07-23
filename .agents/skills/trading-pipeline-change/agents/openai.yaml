@@ -1,0 +1,4 @@
+interface:
+  display_name: "Trading Pipeline Change"
+  short_description: "Safely modify NEWXAU signal pipeline stages"
+  default_prompt: "Use $trading-pipeline-change to review or implement a safe NEWXAU trading pipeline change."

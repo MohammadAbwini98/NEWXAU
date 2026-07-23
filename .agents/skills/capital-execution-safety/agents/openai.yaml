@@ -1,0 +1,4 @@
+interface:
+  display_name: "Capital Execution Safety"
+  short_description: "Protect Capital.com execution safeguards"
+  default_prompt: "Use $capital-execution-safety to review or modify Capital.com execution without weakening safeguards."

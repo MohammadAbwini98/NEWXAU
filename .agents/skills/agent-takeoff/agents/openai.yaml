@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Takeoff"
+  short_description: "Resume NEWXAU safely from verified handoff"
+  default_prompt: "Use $agent-takeoff to resume NEWXAU work from the verified active handoff."

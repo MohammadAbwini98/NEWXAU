@@ -10,7 +10,7 @@ When dealing with database operations or modifying `storage.py` and `init_db.py`
 ## Strict Safety Rules
 1. **Never drop tables** without explicit user approval.
 2. **Never truncate data** without explicit user approval.
-3. **Never run destructive SQL automatically**. Always provide the SQL and wait for the user to run it.
+3. **Never run destructive SQL automatically**. Do not run migrations against an unknown or production database.
 4. Prefer **additive migrations** (e.g., adding columns with defaults instead of renaming or deleting them).
 5. Always explain the **rollback plan**.
 6. Always identify the **affected tables/entities**.
@@ -19,3 +19,4 @@ When dealing with database operations or modifying `storage.py` and `init_db.py`
 - Ensure parameterized queries (`%s` in psycopg) are used everywhere to prevent SQL injection.
 - Ensure `ON CONFLICT` is used correctly for idempotency.
 - Verify that `POSTGRES_SCHEMA` (usually `newxau`) is referenced correctly in new queries.
+- Preserve the application's PostgreSQL-to-in-memory fallback.

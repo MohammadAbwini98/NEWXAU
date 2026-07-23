@@ -1,0 +1,21 @@
+---
+description: Vanilla dashboard, REST, WebSocket, and health UI rules
+globs:
+  - "src/gold_signal_system/dashboard_static/**/*"
+  - "src/gold_signal_system/api.py"
+  - "src/gold_signal_system/event_bus.py"
+  - "src/gold_signal_system/health.py"
+  - "src/gold_signal_system/startup_state.py"
+  - "tests/test_dashboard_startup.py"
+  - "tests/test_run_api.py"
+alwaysApply: false
+---
+
+# Dashboard + Realtime Rules
+
+- Dashboard code lives in `src/gold_signal_system/dashboard_static/`.
+- Preserve Vanilla HTML/JS/CSS unless migration is explicitly requested.
+- Keep REST payloads backward compatible and `/ws/events` handling resilient.
+- Show loading, empty, reconnecting, stale-data, blocked, and error states.
+- Do not expose credentials, tokens, DSNs, or sensitive account data.
+- Check the browser console manually after UI changes.

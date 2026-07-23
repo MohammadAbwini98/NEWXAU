@@ -667,6 +667,8 @@
       livePrice: {},
       executionStatus: {},
       controlUnit: { config: {}, sessions: [], current_session: "UNKNOWN", statistics: {} },
+      controlSaveStatus: "idle",
+      controlSaveError: "",
       executionOrders: { items: [], total: 0, page: 1, page_size: 25 },
       executionFilters: { status: "", outcome: "", direction: "", market_session: "", signal_id: "", from_time: "", to_time: "", page: 1, page_size: 25 },
       executionDetail: { open: false, loading: false, order: null, signal: null, error: "" },
@@ -681,6 +683,9 @@
       outcomeSummary: {},
       logs: []
     };
+
+    let controlMutationRevision = 0;
+    let controlSaveQueue = Promise.resolve();
 
     const viewIds = ["dashboard", "live", "execution", "control", "history", "models", "indicators", "risk", "backtesting", "replay", "optimization", "health", "paper", "settings", "logs"];
 
@@ -895,6 +900,8 @@
     }
 
     async function loadSupplementalData() {
+      const controlLoadRevision = controlMutationRevision;
+      const controlLoadBlocked = state.controlSaveStatus === "saving";
       const [history, outcomes, artifacts, performance, backtest, backtestStatus, backtests, activeProfile, optimizationRuns, outcomeSummary, executionStatus, controlUnit, controlStats] = await Promise.all([
         fetchJson("/api/signals/history?page=1&page_size=25"),
         fetchJson("/api/signals/outcomes?page=1&page_size=25"),
@@ -928,7 +935,9 @@
       state.optimizationRuns = optimizationRuns || { items: [] };
       state.outcomeSummary = outcomeSummary || {};
       state.executionStatus = executionStatus || {};
-      state.controlUnit = { ...(controlUnit || {}), statistics: controlStats || {} };
+      if (!controlLoadBlocked && controlLoadRevision === controlMutationRevision && state.controlSaveStatus !== "saving") {
+        state.controlUnit = { ...(controlUnit || {}), statistics: controlStats || {} };
+      }
       await loadExecutionOrders(false);
     }
 
@@ -1325,6 +1334,14 @@
 
     function renderControlUnit() {
       const config = controlConfig();
+      const controlSaving = state.controlSaveStatus === "saving";
+      const controlSaveMessage = controlSaving
+        ? "Saving changes..."
+        : state.controlSaveStatus === "error"
+          ? `Save failed: ${state.controlSaveError || "unknown error"}`
+          : state.controlSaveStatus === "saved"
+            ? "Saved"
+            : "";
       const stats = state.controlUnit.statistics || {};
       const decisionSummary = stats.decision_summary || {};
       const executionSummary = stats.execution_summary || {};
@@ -1347,7 +1364,7 @@
       document.getElementById("view-control").innerHTML = `
         <div class="grid-2">
           ${card("Execution Control", `
-            <div class="toggle-grid">
+            <div class="toggle-grid" aria-busy="${controlSaving ? "true" : "false"}">
               <label class="toggle-row wide">
                 <span>Control Unit</span>
                 <input type="checkbox" data-control-toggle="enabled" ${config.enabled ? "checked" : ""} />
@@ -1372,6 +1389,7 @@
             </div>
             <div class="toolbar" style="margin-top:12px;">
               <button class="action-btn" type="button" data-action="refresh-control-unit">Refresh</button>
+              <span class="muted" role="status" aria-live="polite">${escapeHtml(controlSaveMessage)}</span>
             </div>
           `)}
           ${card("Gate Status", table([
@@ -1410,34 +1428,67 @@
     }
 
     async function loadControlUnit() {
+      const controlLoadRevision = controlMutationRevision;
+      const controlLoadBlocked = state.controlSaveStatus === "saving";
       const [controlUnit, controlStats] = await Promise.all([
         fetchJson("/api/execution/control"),
         fetchJson("/api/execution/control/stats")
       ]);
+      if (controlLoadBlocked || controlLoadRevision !== controlMutationRevision || state.controlSaveStatus === "saving") return;
       state.controlUnit = { ...(controlUnit || {}), statistics: controlStats || {} };
       if (state.activeView === "control") renderControlUnit();
     }
 
-    async function saveControlConfig(config) {
-      const result = await fetchJson("/api/execution/control", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(config)
-      });
-      state.controlUnit = {
-        status: result.status,
-        sessions: result.sessions || state.controlUnit.sessions || [],
-        session_config: result.session_config || state.controlUnit.session_config || [],
-        current_session: result.current_session,
-        current_session_jordan_time: result.current_session_jordan_time,
-        current_session_utc: result.current_session_utc,
-        current_session_trading_allowed: result.current_session_trading_allowed,
-        config: result.config || config,
-        statistics: result.statistics || {}
-      };
-      state.executionStatus = await fetchJson("/api/execution/status");
-      addLog("execution.control.updated", result.config || config);
+    function queueControlConfigSave(config) {
+      const revision = ++controlMutationRevision;
+      state.controlUnit = { ...state.controlUnit, config };
+      state.controlSaveStatus = "saving";
+      state.controlSaveError = "";
       renderControlUnit();
+      controlSaveQueue = controlSaveQueue
+        .catch(() => undefined)
+        .then(() => persistControlConfig(config, revision));
+      return controlSaveQueue;
+    }
+
+    async function persistControlConfig(config, revision) {
+      try {
+        const result = await fetchJson("/api/execution/control", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(config)
+        });
+        if (revision !== controlMutationRevision) return;
+        state.controlUnit = {
+          status: result.status,
+          sessions: result.sessions || state.controlUnit.sessions || [],
+          session_config: result.session_config || state.controlUnit.session_config || [],
+          current_session: result.current_session,
+          current_session_jordan_time: result.current_session_jordan_time,
+          current_session_utc: result.current_session_utc,
+          current_session_trading_allowed: result.current_session_trading_allowed,
+          config: result.config || config,
+          statistics: result.statistics || {}
+        };
+        state.controlSaveStatus = "saved";
+        state.controlSaveError = "";
+        addLog("execution.control.updated", result.config || config);
+        renderControlUnit();
+        try {
+          state.executionStatus = await fetchJson("/api/execution/status");
+        } catch (statusError) {
+          addLog("execution.status.refresh.error", { message: String(statusError) });
+        }
+      } catch (error) {
+        if (revision !== controlMutationRevision) return;
+        state.controlSaveStatus = "error";
+        state.controlSaveError = String(error);
+        addLog("execution.control.update.error", { message: String(error) });
+        await loadControlUnit();
+        state.controlSaveStatus = "error";
+        state.controlSaveError = String(error);
+        if (state.activeView === "control") renderControlUnit();
+      }
     }
 
     function renderExecutionDetailModal() {
@@ -2559,7 +2610,7 @@
         const config = controlConfig();
         const session = controlSession.dataset.controlSession;
         config.allowed_sessions = { ...(config.allowed_sessions || {}), [session]: Boolean(controlSession.checked) };
-        await saveControlConfig(config);
+        await queueControlConfigSave(config);
         return;
       }
 
@@ -2568,7 +2619,7 @@
         const config = controlConfig();
         const direction = controlDirection.dataset.controlDirection;
         config.allowed_directions = { ...(config.allowed_directions || {}), [direction]: Boolean(controlDirection.checked) };
-        await saveControlConfig(config);
+        await queueControlConfigSave(config);
         return;
       }
 
@@ -2576,7 +2627,7 @@
       if (controlToggle) {
         const config = controlConfig();
         config[controlToggle.dataset.controlToggle] = Boolean(controlToggle.checked);
-        await saveControlConfig(config);
+        await queueControlConfigSave(config);
         return;
       }
     });
