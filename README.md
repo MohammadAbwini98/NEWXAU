@@ -41,8 +41,18 @@ npm audit
 ```
 
 The legacy dashboard remains available through `python scripts/run_api.py`.
-Installer packaging is intentionally gated on a validated private Python runtime;
-see `docs/desktop/PACKAGING.md` and `docs/desktop/MIGRATION_STATUS.md`.
+Build and verify the private Windows runtime with:
+
+```powershell
+npm run runtime:build
+npm run runtime:verify
+```
+
+Packaged mode fails closed if that runtime is missing; it never uses
+machine-wide Python. The legacy dashboard remains the supported fallback until
+the parity matrix is complete and product cutover is explicitly accepted. See
+`docs/desktop/PACKAGING.md`, `docs/desktop/PARITY_MATRIX.md`, and
+`docs/desktop/MIGRATION_STATUS.md`.
 
 ## Runtime Modes
 
@@ -65,7 +75,11 @@ Capital.com configuration is compatible with the existing Kronos project env nam
 - `CAPITAL_DEFAULT_PRICE_SIDE` or `CAPITALCOM_PRICE_SIDE`
 - `CAPITAL_USE_ENCRYPTED_PASSWORD`
 
-The runtime automatically reads `.env` from the current directory. To import Capital.com/Kronos-compatible environment values from another file, set `CAPITAL_ENV_FILE` explicitly.
+Legacy Python entry points automatically read `.env` from the current
+directory. The Electron-owned backend uses encrypted desktop secrets or
+explicit process environment values and blocks implicit repository `.env`
+credentials. To import Capital.com/Kronos-compatible values into a legacy
+Python process from another file, set `CAPITAL_ENV_FILE` explicitly.
 
 ### 2. Model Artifacts
 

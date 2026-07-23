@@ -1,6 +1,6 @@
 # Commands
 
-Last updated: 2026-07-23
+Last updated: 2026-07-24
 
 Only list commands confirmed by repository evidence.
 
@@ -61,6 +61,8 @@ Requires Node 22.12+ and a staged private runtime described in
 `docs/desktop/PACKAGING.md`.
 
 ```powershell
+npm run runtime:build
+npm run runtime:manifests
 npm run runtime:verify
 npm run package:dir
 npm run package:win

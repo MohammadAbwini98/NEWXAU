@@ -1,6 +1,6 @@
 # Current State
 
-Last updated: 2026-07-23
+Last updated: 2026-07-24
 
 ## What Works
 
@@ -15,6 +15,9 @@ Last updated: 2026-07-23
   It owns the Python child process, uses a narrow preload bridge, stores desktop
   settings under `%LOCALAPPDATA%\NEWXAU`, encrypts configured secrets with
   Electron `safeStorage`, and connects to the preserved REST/WebSocket contract.
+- Packaged desktop startup fails closed when the bundled Python runtime is
+  absent. Backend logs and desktop diagnostics pass through centralized
+  sensitive-data redaction.
 - Desktop routes now cover Overview, Live Signal, Execution, Control Unit,
   Signal History, Models, Indicators, Risk, Backtesting, Optimization, Replay,
   News Intelligence, System Health, and Settings.
@@ -43,10 +46,15 @@ Last updated: 2026-07-23
 - Legacy stored session labels such as `ASIAN`, `LONDON`, `NEW_YORK`, `LONDON_NEW_YORK_OVERLAP`, and `ROLLOVER` are accepted as aliases and normalized to the new session names.
 - Candle storage used by live signal generation is still in-process memory. Broker failures other than one recoverable 401, or a stalled background worker, can still leave live ticks fresh while signal candles and recommendations stop advancing; check `/api/system/health.background_cycle`.
 - Existing walk-forward JSON reports predate the cost-aware legacy simulator and use mock models; they are baselines only and must not be presented as production profitability evidence.
-- Windows installer production is gated on a validated private Python runtime
-  staged at `desktop/runtime/python/`, code signing, and clean-machine smoke
-  validation. `npm run runtime:verify` intentionally fails until that release
-  input exists.
+- A local private Python 3.12.10 x64 runtime has passed stable hashed inventory,
+  package/DLL, native inference, PostgreSQL driver, relocated backend import,
+  and safety-environment verification. Controlled import bytecode is hashed and
+  runtime bytecode writes are disabled. The generated runtime is excluded from
+  Git.
+- Unsigned unpacked, NSIS, and portable packaging has been exercised locally.
+  Development and unpacked-package renderer/backend lifecycle smokes reached
+  ready and shut down with empty stderr. Signing and clean non-admin machine
+  validation remain gated.
 - Node 22.12 or newer is required for packaging. The current local Node 18
   runtime can type-check, test, build, and run Electron smoke validation, but
   does not meet the declared packaging toolchain floor.
@@ -72,8 +80,8 @@ Last updated: 2026-07-23
 - Watch the dashboard `Stream:` pill and `/api/price/latest` after long-running sessions; it should show fresh ticks or an explicit reconnecting status instead of silently freezing.
 - Watch `/api/system/health` after long-running sessions; `background_cycle.healthy` should stay true and `background_cycle.last_success_at` should update near the configured live-cycle interval.
 - Keep memory docs current after implementation work.
-- Stage and validate the private Windows Python runtime, then run
-  `npm run package:dir` and clean-machine installer smoke validation.
+- Reproduce the private Windows runtime/package hashes in the release
+  environment, then run clean-machine installer smoke validation.
 - Review `docs/desktop/PARITY_MATRIX.md` and explicitly accept the desktop
   surfaces before removing or redirecting the legacy dashboard.
 - Run the data-quality gate in shadow/monitor-only mode first, then explicitly enable it only after reviewing block rates and false blocks on versioned out-of-sample data.

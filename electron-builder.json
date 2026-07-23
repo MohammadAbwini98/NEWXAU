@@ -27,7 +27,17 @@
     {
       "from": "models",
       "to": "backend/models",
-      "filter": ["**/*"]
+      "filter": [
+        "**/*",
+        "!**/.cache/**",
+        "!**/__pycache__/**",
+        "!**/*.pyc",
+        "!_artifacts_5m_backup/**"
+      ]
+    },
+    {
+      "from": "desktop/runtime/model-manifest.json",
+      "to": "backend/models/manifest.json"
     },
     {
       "from": "db",
@@ -46,14 +56,17 @@
         "target": "portable",
         "arch": ["x64"]
       }
-    ],
-    "artifactName": "${productName}-${version}-${arch}.${ext}"
+    ]
   },
   "nsis": {
+    "artifactName": "${productName}-${version}-${arch}-installer.${ext}",
     "oneClick": false,
     "perMachine": false,
     "allowElevation": false,
     "allowToChangeInstallationDirectory": true,
     "deleteAppDataOnUninstall": false
+  },
+  "portable": {
+    "artifactName": "${productName}-${version}-${arch}-portable.${ext}"
   }
 }

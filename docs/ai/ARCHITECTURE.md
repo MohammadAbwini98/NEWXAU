@@ -37,6 +37,16 @@ graph TD;
   `app/shared/`, and React/TypeScript renderer in `app/renderer/`.
 * Electron main owns the Python process, random loopback port, per-launch token,
   local settings, encrypted secrets, and REST proxy.
+* Packaged Python resolution is fail-closed. Development resolution checks the
+  staged private runtime, then `.venv`, and permits system Python only through
+  an explicit environment opt-in.
+* Electron supplies encrypted or explicitly inherited backend secrets and
+  blocks implicit repository `.env` credentials by setting absent sensitive
+  keys to empty values. The legacy Python entry points retain their existing
+  `.env` behavior.
+* `app/shared/redaction.ts` is the shared diagnostic boundary for persisted
+  backend logs, backend/UI error messages, failed REST diagnostics, and future
+  support-bundle payloads.
 * The renderer has no Node integration. It uses a narrow `contextBridge` API,
   typed REST client, and authenticated `/ws/events` client with bounded
   reconnect and targeted refreshes.
@@ -63,6 +73,11 @@ graph LR;
   resources resolve independently of the current working directory.
 * Desktop shutdown first requests bounded graceful backend shutdown and then
   terminates the owned child only as a fallback.
+* Release verification compares complete SHA-256 runtime/model manifests, then
+  executes native-library and backend-import smoke tests from an unrelated
+  temporary package layout.
+* Runtime imports are warmed before manifest generation. The owned backend sets
+  `PYTHONDONTWRITEBYTECODE=1`, preserving the packaged inventory after launch.
 
 ## Database / Data Layer
 *   **Engine**: PostgreSQL.

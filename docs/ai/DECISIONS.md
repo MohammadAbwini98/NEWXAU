@@ -1,6 +1,60 @@
 # Decisions
 
-Last updated: 2026-07-21
+Last updated: 2026-07-24
+
+## 2026-07-24 - Retain Legacy Dashboard Until Explicit Parity Acceptance
+
+**Decision:** Keep the legacy dashboard available for every desktop capability
+classified `Legacy fallback`. Treat the absence of direct Electron order
+submission as `Restricted by design`.
+
+**Reason:** Paper Trading, diagnostics, replay workflow depth, detailed
+charts/filters, desktop-native exports, and some settings are not yet accepted
+as complete desktop parity. Direct renderer execution would weaken the intended
+process boundary.
+
+**Impact:** PR #2 remains a draft. Legacy removal requires a complete parity
+matrix and explicit product cutover approval.
+
+**Related files:** `docs/desktop/PARITY_MATRIX.md`,
+`app/main/backendProcessManager.ts`
+
+## 2026-07-24 - Packaged Python Is Private And Fail-Closed
+
+**Decision:** Packaged mode may launch only
+`resources/python/python.exe`. Development may use the staged private runtime,
+then `.venv`, and may use system Python only with
+`NEWXAU_ALLOW_SYSTEM_PYTHON=1`.
+
+**Reason:** A packaged trading application must not silently inherit an
+unverified machine-wide interpreter or dependency set.
+
+**Impact:** Missing packaged Python produces a blocking backend failure. Release
+verification requires exact policy versions, hashed runtime/model inventories,
+native inference, PostgreSQL driver loading, and safety-environment assertions.
+
+**Related files:** `app/main/pythonRuntime.ts`,
+`scripts/build-desktop-runtime.ps1`,
+`scripts/verify-desktop-runtime.mjs`
+
+## 2026-07-24 - Desktop Secrets And Runtime Inventory Stay Isolated
+
+**Decision:** The Electron-owned backend uses encrypted desktop secrets or
+explicit process environment values, passes absent sensitive keys as empty, and
+disables runtime bytecode writes. The runtime builder warms approved imports
+before generating the manifest.
+
+**Reason:** Desktop development must not silently inherit repository `.env`
+credentials, and first launch must not create files that were absent from the
+verified runtime inventory.
+
+**Impact:** Legacy Python entry points retain their existing `.env` behavior.
+Desktop startup falls back to in-memory storage when no explicit PostgreSQL DSN
+is configured, while controlled warmup bytecode remains hashed and repeat
+runtime verification is stable.
+
+**Related files:** `app/main/backendProcessManager.ts`,
+`scripts/build-desktop-runtime.ps1`, `docs/desktop/PACKAGING.md`
 
 ## 2026-07-21 - Measure Data Quality Always, Gate Inference Only By Explicit Opt-In
 

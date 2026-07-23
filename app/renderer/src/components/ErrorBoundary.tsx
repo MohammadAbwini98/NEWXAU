@@ -1,4 +1,9 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import {
+  redactDiagnosticPayload,
+  redactErrorMessage,
+  redactSensitiveText
+} from "../../../shared/redaction";
 
 interface Props {
   children: ReactNode;
@@ -18,8 +23,12 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    console.error(`[NEWXAU · ${this.props.area}]`, error, info.componentStack);
-    this.setState({ stack: info.componentStack ?? "" });
+    console.error(
+      `[NEWXAU · ${this.props.area}]`,
+      redactDiagnosticPayload(error),
+      redactSensitiveText(info.componentStack ?? "")
+    );
+    this.setState({ stack: redactSensitiveText(info.componentStack ?? "") });
   }
 
   render(): ReactNode {
@@ -29,7 +38,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <span className="eyebrow danger">View interrupted</span>
         <h2>{this.props.area} could not be rendered</h2>
         <p>The desktop shell and backend are still running. Retry this view or reload the window.</p>
-        <pre>{this.state.error.message}{this.state.stack}</pre>
+        <pre>{redactErrorMessage(this.state.error)}{this.state.stack}</pre>
         <div className="button-row">
           <button className="button primary" type="button" onClick={() => this.setState({ error: null, stack: "" })}>
             Try again

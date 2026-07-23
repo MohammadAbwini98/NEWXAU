@@ -12,6 +12,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "runtime:build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-desktop-runtime.ps1",
+    "runtime:manifests": "node scripts/generate-desktop-release-manifests.mjs",
     "runtime:verify": "node scripts/verify-desktop-runtime.mjs",
     "package:dir": "npm run runtime:verify && npm run build && electron-builder --dir",
     "package:win": "npm run runtime:verify && npm run build && electron-builder --win nsis portable"

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { redactErrorMessage } from "../../../shared/redaction";
 
 export function useRemoteResource<T>(loader: () => Promise<T>, enabled = true) {
   const [data, setData] = useState<T | null>(null);
@@ -12,7 +13,7 @@ export function useRemoteResource<T>(loader: () => Promise<T>, enabled = true) {
       setData(await loader());
       setError(null);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : String(reason));
+      setError(redactErrorMessage(reason));
     } finally {
       setLoading(false);
     }

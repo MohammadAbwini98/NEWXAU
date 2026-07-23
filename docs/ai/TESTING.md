@@ -54,11 +54,30 @@ This gate covers desktop token authentication, WebSocket rejection, runtime
 paths, graceful shutdown authorization, pre-Electron endpoint parity, Capital
 execution safeguards, Control Unit persistence/session behavior, reconnect
 backoff, stale Control Unit response handling, and the renderer-to-backend
-mutation allowlist.
+mutation allowlist. Electron tests also cover packaged runtime fail-closed
+resolution and diagnostic redaction.
 
 The checked-in Electron headless smoke loads the production renderer, starts and
 stops the owned Python process, verifies backend readiness, and captures visual
 evidence. It never enables Capital.com execution.
+
+Release-runtime validation:
+
+```powershell
+npm run runtime:build
+npm run runtime:verify
+npm run package:dir
+```
+
+The verifier checks exact Python/package versions, runtime/model hashes, native
+DLL imports, minimal Torch/LightGBM/ONNX inference, PostgreSQL driver loading,
+packaged-resource imports, and execution safety environment values. For Electron
+lifecycle smoke in an agent host, remove inherited `ELECTRON_RUN_AS_NODE` and
+set an isolated absolute `NEWXAU_DESKTOP_USER_DATA_ROOT`.
+
+Run the verifier twice after runtime creation and confirm the `.pyc` inventory
+count does not change. The development and unpacked-package headless smokes must
+both report `renderer_loaded: true`, `backend_phase: ready`, and empty stderr.
 
 ## Adding Tests
 1. Create files in `tests/` named `test_*.py`.

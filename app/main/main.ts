@@ -1,15 +1,29 @@
 import { app, BrowserWindow, ipcMain, shell } from "electron";
 import { mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
-import { dirname } from "node:path";
+import { dirname, isAbsolute, join, resolve } from "node:path";
 import { BackendProcessManager } from "./backendProcessManager";
 import { resolveAppPaths } from "./appPaths";
 import { SettingsStore } from "./settingsStore";
 import { SecretStore } from "./secretStore";
 import { assertTrustedSender } from "./senderGuard";
-import { IPC, type DesktopRequestInit, type DesktopSettings } from "../shared/contracts";
+import {
+  IPC,
+  type DesktopRequestInit,
+  type DesktopResponse,
+  type DesktopSettings
+} from "../shared/contracts";
+import { redactErrorMessage } from "../shared/redaction";
 
 let mainWindow: BrowserWindow | null = null;
+let acceptingBackendRequests = true;
+const activeBackendRequests = new Set<Promise<DesktopResponse>>();
+const isolatedUserDataRoot = process.env.NEWXAU_DESKTOP_USER_DATA_ROOT;
+if (isolatedUserDataRoot) {
+  if (!isAbsolute(isolatedUserDataRoot)) {
+    throw new Error("NEWXAU_DESKTOP_USER_DATA_ROOT must be an absolute path.");
+  }
+  app.setPath("userData", resolve(isolatedUserDataRoot));
+}
 const gotSingleInstanceLock = app.requestSingleInstanceLock();
 const headlessSmoke = process.env.NEWXAU_DESKTOP_HEADLESS_SMOKE === "1";
 const legacyCaptureUrl = process.env.NEWXAU_LEGACY_CAPTURE_URL;
@@ -50,7 +64,23 @@ if (!gotSingleInstanceLock) {
     ipcMain.handle(IPC.windowIsMaximized, trusted(() => mainWindow?.isMaximized() ?? false));
     ipcMain.handle(IPC.backendGetState, trusted(() => backend.getState()));
     ipcMain.handle(IPC.backendRestart, trusted(() => backend.restart()));
-    ipcMain.handle(IPC.backendRequest, trusted((_event, path: string, init?: DesktopRequestInit) => backend.request(path, init)));
+    ipcMain.handle(IPC.backendRequest, trusted((_event, path: string, init?: DesktopRequestInit) => {
+      if (!acceptingBackendRequests) {
+        return {
+          ok: false,
+          status: 503,
+          headers: {},
+          body: { detail: "Desktop backend is shutting down." }
+        } satisfies DesktopResponse;
+      }
+      const request = backend.request(path, init);
+      activeBackendRequests.add(request);
+      void request.then(
+        () => activeBackendRequests.delete(request),
+        () => activeBackendRequests.delete(request)
+      );
+      return request;
+    }));
     ipcMain.handle(IPC.backendWebsocketConfig, trusted(() => backend.getWebsocketConfig()));
     ipcMain.handle(IPC.settingsGet, trusted(() => settings.get()));
     ipcMain.handle(IPC.settingsUpdate, trusted((_event, patch: Partial<DesktopSettings>) => settings.update(patch)));
@@ -91,7 +121,7 @@ if (!gotSingleInstanceLock) {
       if (url !== current) event.preventDefault();
     });
     mainWindow.webContents.on("preload-error", (_event, preloadPath, error) => {
-      console.error(`[preload-error] ${preloadPath}: ${error.message}`);
+      console.error(`[preload-error] ${preloadPath}: ${redactErrorMessage(error)}`);
     });
     if (headlessSmoke) {
       mainWindow.webContents.on("console-message", (_event, level, message, line, sourceId) => {
@@ -135,7 +165,7 @@ if (!gotSingleInstanceLock) {
     if (!legacyCaptureUrl && (desktopSettings.launchBackendOnStart || headlessSmoke)) await backend.start();
     if (headlessSmoke) {
       if (!legacyCaptureUrl) {
-        const deadline = Date.now() + 20_000;
+        const deadline = Date.now() + 90_000;
         while (backend.getState().phase !== "ready" && Date.now() < deadline) {
           await new Promise((resolve) => setTimeout(resolve, 100));
         }
@@ -159,7 +189,12 @@ if (!gotSingleInstanceLock) {
         backend_pid: state.pid,
         capture_path: capturePath ?? null
       }));
-      if (!legacyCaptureUrl) await backend.stop();
+      if (!legacyCaptureUrl) {
+        acceptingBackendRequests = false;
+        if (mainWindow && !mainWindow.isDestroyed()) mainWindow.destroy();
+        await Promise.allSettled([...activeBackendRequests]);
+        await backend.stop();
+      }
       app.removeAllListeners("before-quit");
       app.quit();
     }

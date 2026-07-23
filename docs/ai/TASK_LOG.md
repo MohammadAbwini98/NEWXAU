@@ -645,3 +645,57 @@ Stage the approved private Windows Python runtime at
 `desktop/runtime/python/`, validate with `npm run runtime:verify`, then build,
 sign, and test NSIS/portable artifacts on a clean Windows account. Do not remove
 the legacy dashboard until explicit parity acceptance.
+## 2026-07-24 - Restack Desktop PR And Harden Release Packaging
+
+### Objective
+
+Merge the reviewed reliability base, retarget the desktop migration to `main`,
+retain the legacy dashboard until parity acceptance, and close the packaged
+runtime and diagnostics security gaps before release packaging.
+
+### Outcome
+
+- Safety-reviewed PR #1 and merged it into `main` after 44 focused tests, 13
+  market-session subtests, four structural dashboard tests, JavaScript parse,
+  compile, and memory validation passed. Execution eligibility was not changed
+  and no live broker request occurred.
+- Retargeted draft PR #2 to `main`, merged updated `main` into its feature
+  branch without content drift, and confirmed its diff contains only the
+  desktop migration.
+- Packaged Python resolution now fails closed. Development checks the staged
+  private runtime, then `.venv`, and requires explicit opt-in for system Python.
+- Added shared redaction for backend logs, state/error messages, failed REST
+  diagnostics, renderer errors, and future support payloads.
+- Added pinned CPython 3.12.10 x64 runtime build automation, exact package
+  policy, complete SHA-256 runtime/model manifests, forbidden-file checks,
+  relocated backend imports, native DLL checks, Torch/LightGBM/ONNX inference,
+  PostgreSQL driver loading, and execution-safety assertions.
+- Built the ignored private runtime locally from the official PSF archive after
+  validating its published SHA-256. The final runtime contains 24,578 hashed
+  files, including 1,959 controlled bytecode files; two consecutive
+  `runtime:verify` runs passed without changing that inventory.
+- Prevented Electron development startup from silently importing repository
+  `.env` credentials. Encrypted desktop secrets and explicit process
+  environment values remain supported; absent sensitive keys are isolated.
+- Separated the owned authenticated shutdown request from the renderer mutation
+  allowlist. The renderer remains unable to call shutdown, while lifecycle
+  smoke confirms the Python child exits after graceful shutdown.
+- Produced unsigned unpacked, NSIS, and portable Windows test packages with
+  Node 22.12.0. Development and unpacked-package lifecycle smoke reached
+  renderer/backend ready and shut down with empty stderr.
+  - Installer SHA-256:
+    `EDF037D6E52181B947A683453B3737AFE7B6E9CB5F875600B4C02681DDB849CB`
+  - Portable SHA-256:
+    `032B774DC38B1AA877952153966A9ADCE805093F4A6177EFDA7C9A0F149DD0CC`
+  - All three checked executables reported `NotSigned`; packaging stderr was
+    empty.
+- Reclassified desktop parity as `Complete`, `Restricted by design`,
+  `Legacy fallback`, or `Not implemented`; direct order submission is
+  deliberately restricted and the legacy dashboard remains required.
+
+### Remaining gates
+
+- Validate install, launch, restart, shutdown, uninstall, and file handling on a
+  clean non-admin Windows machine.
+- Configure signing, verify signed hashes/Authenticode, complete parity
+  acceptance, and only then mark PR #2 ready.

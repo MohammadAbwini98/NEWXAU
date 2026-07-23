@@ -7,6 +7,11 @@ import { EventEmitter } from "node:events";
 import type { AppPaths } from "./appPaths";
 import type { BackendState, DesktopRequestInit, DesktopResponse } from "../shared/contracts";
 import type { SecretStore } from "./secretStore";
+import {
+  redactErrorMessage,
+  redactSensitiveText,
+  redactSensitiveValue
+} from "../shared/redaction";
 
 interface ReadyMessage {
   event: "ready";
@@ -19,6 +24,28 @@ const ALLOWED_MUTATIONS = new Set([
   "POST /api/execution/refresh-outcomes",
   "POST /api/backtests/run"
 ]);
+
+const DESKTOP_SECRET_ENV_NAMES = [
+  "CAPITALCOM_API_KEY",
+  "CAPITAL_API_KEY",
+  "CAPITALCOM_IDENTIFIER",
+  "CAPITAL_IDENTIFIER",
+  "CAPITAL_EMAIL",
+  "CAPITALCOM_PASSWORD",
+  "CAPITAL_PASSWORD",
+  "POSTGRES_DSN",
+  "TELEGRAM_BOT_TOKEN",
+  "TELEGRAM_CHAT_ID"
+] as const;
+
+export function resolveDesktopSecretEnvironment(
+  stored: Record<string, string>,
+  inherited: NodeJS.ProcessEnv
+): Record<string, string> {
+  return Object.fromEntries(
+    DESKTOP_SECRET_ENV_NAMES.map((name) => [name, stored[name] ?? inherited[name] ?? ""])
+  );
+}
 
 export function assertBackendRequestAllowed(path: string, method: string): void {
   if (!path.startsWith("/") || path.startsWith("//")) throw new Error("Invalid backend path.");
@@ -87,16 +114,34 @@ export class BackendProcessManager extends EventEmitter {
   }
 
   private setState(patch: Partial<BackendState>): void {
-    this.state = { ...this.state, ...patch };
+    const safePatch = patch.message
+      ? { ...patch, message: redactSensitiveText(patch.message) }
+      : patch;
+    this.state = { ...this.state, ...safePatch };
     this.emit("state", this.getState());
   }
 
   async start(): Promise<BackendState> {
     if (this.child && !this.child.killed) return this.getState();
+    if (!this.paths.pythonExecutable) {
+      this.setState({
+        phase: "failed",
+        baseUrl: null,
+        websocketUrl: null,
+        pid: null,
+        startedAt: null,
+        message: this.paths.pythonResolutionError ?? "A verified Python runtime is required."
+      });
+      return this.getState();
+    }
     this.stopping = false;
     this.token = randomBytes(32).toString("base64url");
     const port = await reservePort();
     const secretEnvironment = await this.secrets.environment();
+    const isolatedSecretEnvironment = resolveDesktopSecretEnvironment(
+      secretEnvironment,
+      process.env
+    );
     await mkdir(this.paths.logsRoot, { recursive: true });
     await mkdir(this.paths.runtimeRoot, { recursive: true });
     this.setState({
@@ -118,6 +163,8 @@ export class BackendProcessManager extends EventEmitter {
         env: {
           ...process.env,
           ...secretEnvironment,
+          ...isolatedSecretEnvironment,
+          PYTHONDONTWRITEBYTECODE: "1",
           PYTHONUNBUFFERED: "1",
           NEWXAU_DESKTOP_TOKEN: this.token,
           NEWXAU_DESKTOP_ORIGIN: "app://newxau",
@@ -146,11 +193,16 @@ export class BackendProcessManager extends EventEmitter {
       const text = chunk.toString("utf8");
       void this.log("backend.stderr.log", text);
       if (this.state.phase === "ready") {
-        this.setState({ message: text.trim().slice(0, 240) || this.state.message });
+        this.setState({
+          message: redactSensitiveText(text.trim()).slice(0, 240) || this.state.message
+        });
       }
     });
     child.once("error", (error) => {
-      this.setState({ phase: "failed", message: `Backend launch failed: ${error.message}` });
+      this.setState({
+        phase: "failed",
+        message: `Backend launch failed: ${redactErrorMessage(error)}`
+      });
     });
     child.once("exit", (code, signal) => {
       this.child = null;
@@ -191,24 +243,37 @@ export class BackendProcessManager extends EventEmitter {
     if (!this.state.baseUrl) throw new Error("Backend is not ready.");
     const method = (init.method ?? "GET").toUpperCase();
     assertBackendRequestAllowed(path, method);
-    const response = await fetch(`${this.state.baseUrl}${path}`, {
-      method,
-      headers: {
-        Accept: "application/json",
-        ...(init.body ? { "Content-Type": "application/json" } : {}),
-        ...init.headers,
-        Authorization: `Bearer ${this.token}`
-      },
-      body: init.body
-    });
-    const contentType = response.headers.get("content-type") ?? "";
-    const body = contentType.includes("application/json") ? await response.json() : await response.text();
-    return {
-      ok: response.ok,
-      status: response.status,
-      headers: Object.fromEntries(response.headers.entries()),
-      body
-    };
+    try {
+      const response = await fetch(`${this.state.baseUrl}${path}`, {
+        method,
+        headers: {
+          Accept: "application/json",
+          ...(init.body ? { "Content-Type": "application/json" } : {}),
+          ...init.headers,
+          Authorization: `Bearer ${this.token}`
+        },
+        body: init.body
+      });
+      const contentType = response.headers.get("content-type") ?? "";
+      const body = contentType.includes("application/json") ? await response.json() : await response.text();
+      return {
+        ok: response.ok,
+        status: response.status,
+        headers: redactSensitiveValue(
+          Object.fromEntries(response.headers.entries())
+        ) as Record<string, string>,
+        body: response.ok ? body : redactSensitiveValue(body)
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        status: 503,
+        headers: {},
+        body: {
+          detail: `Backend request failed: ${redactErrorMessage(error)}`
+        }
+      };
+    }
   }
 
   async restart(automatic = false): Promise<BackendState> {
@@ -233,7 +298,7 @@ export class BackendProcessManager extends EventEmitter {
     try {
       if (this.state.baseUrl) {
         await Promise.race([
-          this.request("/api/desktop/shutdown", { method: "POST" }),
+          this.requestOwnedShutdown(),
           new Promise((_, reject) => setTimeout(() => reject(new Error("Shutdown timeout")), 2500))
         ]);
       }
@@ -256,7 +321,21 @@ export class BackendProcessManager extends EventEmitter {
     });
   }
 
+  private async requestOwnedShutdown(): Promise<void> {
+    if (!this.state.baseUrl) return;
+    const response = await fetch(`${this.state.baseUrl}/api/desktop/shutdown`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${this.token}`
+      }
+    });
+    if (!response.ok) {
+      throw new Error(`Owned backend shutdown failed with HTTP ${response.status}.`);
+    }
+  }
+
   private async log(file: string, text: string): Promise<void> {
-    await appendFile(join(this.paths.logsRoot, file), text, "utf8");
+    await appendFile(join(this.paths.logsRoot, file), redactSensitiveText(text), "utf8");
   }
 }

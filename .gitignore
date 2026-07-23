@@ -14,6 +14,8 @@ out/
 release/
 coverage/
 desktop/runtime/python/
+desktop/runtime/model-manifest.json
+desktop/runtime/model-manifest.sha256
 
 # Runtime state, local databases, and provider sessions.
 runtime/
