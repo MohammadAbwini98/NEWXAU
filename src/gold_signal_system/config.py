@@ -108,6 +108,17 @@ class RuntimeConfig:
     live_candle_lookback: int = field(default_factory=lambda: int(os.getenv("LIVE_CANDLE_LOOKBACK", "900")))
     live_cycle_retry_attempts: int = field(default_factory=lambda: int(os.getenv("LIVE_CYCLE_RETRY_ATTEMPTS", "3")))
     live_cycle_retry_backoff_seconds: float = field(default_factory=lambda: float(os.getenv("LIVE_CYCLE_RETRY_BACKOFF_SECONDS", "2")))
+    enable_data_quality_gate: bool = field(default_factory=lambda: _env_flag("ENABLE_DATA_QUALITY_GATE", False))
+    data_quality_min_score: float = field(default_factory=lambda: float(os.getenv("DATA_QUALITY_MIN_SCORE", "85")))
+    data_quality_max_missing_ratio: float = field(
+        default_factory=lambda: float(os.getenv("DATA_QUALITY_MAX_MISSING_RATIO", "0.02"))
+    )
+    data_quality_max_outlier_ratio: float = field(
+        default_factory=lambda: float(os.getenv("DATA_QUALITY_MAX_OUTLIER_RATIO", "0.01"))
+    )
+    data_quality_freshness_multiplier: float = field(
+        default_factory=lambda: float(os.getenv("DATA_QUALITY_FRESHNESS_MULTIPLIER", "2.5"))
+    )
     reports_dir: str = field(default_factory=lambda: os.getenv("REPORTS_DIR", "reports"))
     strategy_version: str = field(default_factory=lambda: os.getenv("STRATEGY_VERSION", "strategy_v1"))
     threshold_profile_name: str = field(default_factory=lambda: os.getenv("THRESHOLD_PROFILE_NAME", "default"))

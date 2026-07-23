@@ -1,0 +1,20 @@
+description = "Resume NEWXAU work from the active handoff safely."
+
+prompt = """
+Follow `.agents/skills/agent-takeoff/SKILL.md`.
+
+Read:
+- AGENTS.md
+- docs/ai/README.md
+- docs/ai/CURRENT_STATE.md
+- docs/ai/HANDOFF.md
+
+Inspect:
+!{git status --short --branch}
+!{git diff --stat}
+!{git diff --cached --stat}
+
+Verify the handoff before continuing. If there is no active handoff or current user task, do not invent work.
+
+Never authenticate to or call a live broker during agent validation. Preserve Capital.com demo-only safeguards, PostgreSQL fallback, Jordan-time sessions, model fallback, and pipeline boundaries.
+"""

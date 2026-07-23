@@ -1,6 +1,6 @@
 # Commands
 
-Last updated: 2026-06-30
+Last updated: 2026-07-21
 
 Only list commands confirmed by repository evidence.
 
@@ -46,5 +46,12 @@ There is no `package.json`; the dashboard is vanilla HTML/JS served by FastAPI.
 ## AI Memory Check
 
 ```powershell
+node --check scripts\ai-memory\check-memory.mjs
 node scripts\ai-memory\check-memory.mjs
 ```
+
+## Agent Handoff / Takeoff
+
+- Claude Code commands: `/HANDOFF` and `/TAKEOFF`.
+- Gemini/Antigravity commands: `/HANDOFF` and `/TAKEOFF`.
+- Canonical procedures: `.agents/skills/agent-handoff/SKILL.md` and `.agents/skills/agent-takeoff/SKILL.md`.

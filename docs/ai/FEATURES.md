@@ -1,6 +1,6 @@
 # Features
 
-Last updated: 2026-07-15
+Last updated: 2026-07-21
 
 ## Existing Features
 
@@ -20,6 +20,10 @@ Last updated: 2026-07-15
 - Backtesting and paper-trading scripts.
 - PostgreSQL persistence with in-memory fallback.
 - Optional News Intelligence modules for XAUUSD context and dashboard visibility.
+- Candle-quality scoring for freshness, gaps, duplicates, invalid rows, outliers, ordering, spread, provider state, and aggregation completeness.
+- Default-off fail-closed data-quality gate that skips model adapters and produces auditable deterministic HOLD abstentions.
+- Per-cycle stage timing in API responses and persisted signal snapshot context.
+- Cost-aware legacy backtest results with gross/net R, blocked-signal counts, and explicit cost assumptions.
 
 ## Execution Orders Payload Export
 
@@ -64,3 +68,6 @@ The candle provider requires both `CST` and `X-SECURITY-TOKEN` before marking au
 - Gold session schedule: `src/gold_signal_system/market_sessions.py`
 - Risk: `src/gold_signal_system/risk_engine.py`
 - News Intelligence: `src/gold_signal_system/news_intelligence/`
+- Data validation and aggregation: `src/gold_signal_system/data_engine.py`
+- Pipeline quality gate and timing: `src/gold_signal_system/pipeline.py`
+- Legacy cost-aware simulation: `src/gold_signal_system/backtesting.py`

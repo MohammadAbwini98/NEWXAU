@@ -176,6 +176,7 @@ def _execution_control_service() -> ExecutionControlService:
 async def _publish_cycle_events(result: dict[str, Any]) -> None:
     latest = result["recommendation"]
     now = datetime.now(tz=UTC).isoformat()
+    risk_blocked = latest.get("status", "").startswith("BLOCKED") or latest.get("risk_status") == "BLOCKED"
     await event_bus.publish(
         {
             "event": "signal.updated",
@@ -185,7 +186,7 @@ async def _publish_cycle_events(result: dict[str, Any]) -> None:
     )
     await event_bus.publish(
         {
-            "event": "risk.blocked" if latest.get("status", "").startswith("BLOCKED") else "risk.passed",
+            "event": "risk.blocked" if risk_blocked else "risk.passed",
             "occurred_at": now,
             "data": {
                 "status": latest.get("status"),
@@ -265,6 +266,7 @@ async def _seed_if_needed() -> None:
             "recommendation": cycle.recommendation.model_dump(mode="json"),
             "data_quality_report": cycle.data_quality_report.model_dump(mode="json"),
             "aggregation_counts": cycle.aggregation_counts,
+            "processing_timings_ms": cycle.processing_timings_ms,
             "generated_at": datetime.now(tz=UTC).isoformat(),
         }
         latest_id = system.storage.latest_recommendation_id()
@@ -293,6 +295,7 @@ async def _background_live_cycle_runner() -> None:
                 "recommendation": cycle.recommendation.model_dump(mode="json"),
                 "data_quality_report": cycle.data_quality_report.model_dump(mode="json"),
                 "aggregation_counts": cycle.aggregation_counts,
+                "processing_timings_ms": cycle.processing_timings_ms,
                 "generated_at": datetime.now(tz=UTC).isoformat(),
             }
             latest_id = system.storage.latest_recommendation_id()
@@ -873,6 +876,8 @@ async def _validate_pending_signals(payload: dict[str, Any] | None = None) -> di
         raw_candles=candles,
         source_timeframe=timeframe,
         market_context=MarketContext(**(payload.get("market_context") or {})),
+        data_reference_time=datetime.now(tz=UTC),
+        provider_status="AVAILABLE",
     )
     return {
         "status": "OK",
@@ -1601,6 +1606,7 @@ async def run_signal_cycle(payload: dict[str, Any]) -> dict[str, Any]:
         "recommendation": result.recommendation.model_dump(mode="json"),
         "data_quality_report": result.data_quality_report.model_dump(mode="json"),
         "aggregation_counts": result.aggregation_counts,
+        "processing_timings_ms": result.processing_timings_ms,
         "generated_at": datetime.now(tz=UTC).isoformat(),
     }
     latest_id = system.storage.latest_recommendation_id()

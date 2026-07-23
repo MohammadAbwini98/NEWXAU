@@ -1,11 +1,11 @@
 ---
 name: playwright-automation
-description: Use only if the project contains Playwright or browser automation. Currently marked as optional since Playwright was not found in the codebase.
+description: Dormant optional guidance. Use only after Playwright or browser automation is explicitly added to NEWXAU; do not load for normal dashboard work.
 ---
 
 # Playwright Automation Skill
 
-> **Note**: Playwright or browser automation was *not found* in the codebase during initial review. This file serves as a placeholder if UI test automation is added later.
+> **Dormant:** Playwright is not a current NEWXAU dependency. Do not require, install, or load this skill by default.
 
 If adding browser automation:
 
@@ -15,9 +15,6 @@ If adding browser automation:
 
 ## Flow Design Rules
 - Keep tests isolated; do not share state between test cases.
-
-## Human-like Browser Automation Rules
-- If scraping or interacting with external APIs, introduce randomized delays.
 
 ## JSON-driven Input Rules
 - Separate test data from test scripts using JSON fixtures.

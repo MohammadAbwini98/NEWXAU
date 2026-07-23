@@ -1,0 +1,4 @@
+interface:
+  display_name: "Security Review"
+  short_description: "Audit NEWXAU security and unsafe defaults"
+  default_prompt: "Use $security-review to perform a focused NEWXAU security review."

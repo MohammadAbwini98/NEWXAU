@@ -1,0 +1,4 @@
+interface:
+  display_name: "Model and Training"
+  short_description: "Safely work on NEWXAU models and training"
+  default_prompt: "Use $model-and-training to handle a NEWXAU model or training task with leakage and artifact safeguards."

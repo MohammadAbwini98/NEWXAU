@@ -172,6 +172,17 @@ class DataQualityReport(BaseModel):
     missing_candles_count: int
     missing_timestamps: list[datetime] = Field(default_factory=list)
     issues: list[str] = Field(default_factory=list)
+    quality_score: float = Field(default=100.0, ge=0.0, le=100.0)
+    freshness_seconds: Optional[float] = Field(default=None, ge=0.0)
+    missing_candles: int = 0
+    duplicate_candles: int = 0
+    outlier_count: int = 0
+    out_of_order_count: int = 0
+    spread_status: str = "NOT_EVALUATED"
+    aggregation_status: str = "NOT_EVALUATED"
+    provider_status: str = "UNKNOWN"
+    gate_status: str = "MONITOR_ONLY"
+    blocking_reasons: list[str] = Field(default_factory=list)
 
 
 class IndicatorGroupScore(BaseModel):

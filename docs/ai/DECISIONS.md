@@ -2,6 +2,36 @@
 
 Last updated: 2026-07-21
 
+## 2026-07-21 - Measure Data Quality Always, Gate Inference Only By Explicit Opt-In
+
+**Decision:** Emit candle-quality, aggregation, spread/provider, and stage-timing telemetry on every cycle, but leave fail-closed inference gating disabled unless `ENABLE_DATA_QUALITY_GATE=1` is explicitly configured.
+
+**Reason:** Stale, gapped, outlier-contaminated, or partial data should not silently reach models. However, enabling a new block path changes recommendation frequency and requires shadow and out-of-sample evidence before promotion.
+
+**Impact:** Enabled blocking produces deterministic HOLD abstentions without invoking model adapters or changing dynamic weights. No execution default, broker setting, schema, or historical replay freshness behavior changes.
+
+**Related files:** `src/gold_signal_system/data_engine.py`, `src/gold_signal_system/pipeline.py`, `src/gold_signal_system/model_ensemble.py`, `tests/test_data_quality_gate.py`
+
+## 2026-07-21 - Backtest Results Must Be Net Of Declared Trading Costs
+
+**Decision:** The legacy backtest engine passes configured spread into pipeline risk checks and deducts spread, two slippage fills, and commission from simulated realized R.
+
+**Reason:** Declaring cost settings without applying them materially overstates simulated results and prevents valid experiment comparison.
+
+**Impact:** New reports expose gross R, cost R, net R, blocked-signal counts, and cost assumptions. Prior cost-free reports are not directly comparable and are not promotion evidence.
+
+**Related files:** `src/gold_signal_system/backtesting.py`, `tests/test_data_quality_gate.py`, `docs/ai/EXPERIMENTS.md`
+
+## 2026-07-21 - Canonical Tool-Neutral Agent Procedures With Thin Adapters
+
+**Decision:** Keep verified project facts in `docs/ai/`, canonical reusable procedures in `.agents/skills/` and `.agents/workflows/`, and thin tool-specific adapters in `.claude/`, `.gemini/commands/`, and `.cursor/rules/`.
+
+**Reason:** A shared procedural layer reduces duplicated context and inconsistent safety guidance while allowing each coding tool to use its native command/rule format. `docs/ai/HANDOFF.md` carries only active transfer state, while `TASK_LOG.md` remains the durable history.
+
+**Impact:** Agents start with the memory index, current state, and active handoff, then load only relevant domain guidance. The checker enforces the core memory/handoff contract, scans instruction text for secret-like values without printing values, and warns when optional adapters are absent.
+
+**Related files:** `docs/ai/README.md`, `docs/ai/HANDOFF.md`, `.agents/`, `.claude/`, `.gemini/commands/`, `.cursor/rules/`, `scripts/ai-memory/check-memory.mjs`
+
 ## 2026-07-21 - Keep Runtime And Large Model Artifacts Out Of Git
 
 **Decision:** Publish application source, tests, documentation, schemas, scripts, lightweight model code/metadata, and reports while ignoring credentials, virtual environments, runtime/PostgreSQL state, dataset caches, and downloaded or trained model weights. Track `vendor/Kronos` as a submodule of its upstream repository.

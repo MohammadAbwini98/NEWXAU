@@ -1,0 +1,26 @@
+---
+description: Model ensemble, artifacts, Kronos, training, and evaluation rules
+globs:
+  - "src/gold_signal_system/model_ensemble.py"
+  - "src/gold_signal_system/model_runtime.py"
+  - "src/gold_signal_system/dynamic_weights.py"
+  - "src/gold_signal_system/performance.py"
+  - "src/gold_signal_system/outcome_validator.py"
+  - "models/**/*.py"
+  - "training/**/*.py"
+  - "scripts/train_models.py"
+  - "scripts/validate_models.py"
+  - "scripts/download_kronos.py"
+  - "vendor/Kronos/**"
+alwaysApply: false
+---
+
+# Models + Kronos Rules
+
+- Do not edit `vendor/Kronos` unless explicitly requested.
+- Do not commit weights, caches, or downloaded assets.
+- Preserve missing/invalid-artifact fallback and stable feature/artifact contracts.
+- Prevent leakage and look-ahead bias.
+- Record provenance, timeframe, dataset range, and evaluation method.
+- Do not claim improved profitability without reproducible out-of-sample evidence.
+- Keep dynamic weights bounded, persisted safely, and reversible.

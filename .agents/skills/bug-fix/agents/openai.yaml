@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bug Fix"
+  short_description: "Trace and fix NEWXAU defects safely"
+  default_prompt: "Use $bug-fix to trace and fix a NEWXAU defect with regression coverage."

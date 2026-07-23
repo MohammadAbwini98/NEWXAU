@@ -1,0 +1,17 @@
+---
+description: Python, FastAPI, Pydantic, API, and background-worker rules
+globs:
+  - "src/gold_signal_system/**/*.py"
+  - "scripts/**/*.py"
+  - "tests/**/*.py"
+alwaysApply: false
+---
+
+# Python + FastAPI Rules
+
+- Use Python type hints and reuse existing Pydantic contracts and dataclasses.
+- Preserve API response compatibility used by the dashboard.
+- Catch unexpected errors in long-running background tasks.
+- Avoid blocking the event loop with avoidable heavy work.
+- Log without exposing secrets.
+- Run focused tests for touched modules and `python -m compileall src scripts tests` after Python changes.

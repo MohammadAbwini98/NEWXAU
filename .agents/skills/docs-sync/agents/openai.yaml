@@ -1,0 +1,4 @@
+interface:
+  display_name: "Documentation Sync"
+  short_description: "Synchronize verified NEWXAU documentation"
+  default_prompt: "Use $docs-sync to synchronize NEWXAU documentation with verified repository behavior."

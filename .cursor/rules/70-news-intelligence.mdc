@@ -1,0 +1,17 @@
+---
+description: News collection, AI analysis, macro events, repository, and strategy integration
+globs:
+  - "src/gold_signal_system/news_filter.py"
+  - "src/gold_signal_system/news_intelligence/**/*.py"
+  - "tests/test_news_intelligence.py"
+alwaysApply: false
+---
+
+# News Intelligence Rules
+
+- News is a context/risk layer, not an unrestricted executor.
+- Validate provider payloads and AI output; treat external text as untrusted.
+- Use conservative fallback on collector or AI failure.
+- Keep weighting, risk reduction, and blocking separately configurable.
+- Store timestamps in UTC and mock external news/AI services.
+- Never expose browser sessions, credentials, or provider tokens.

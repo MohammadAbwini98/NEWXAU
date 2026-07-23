@@ -1,0 +1,19 @@
+---
+description: PostgreSQL, raw SQL, migration, persistence, and fallback rules
+globs:
+  - "src/gold_signal_system/storage.py"
+  - "src/gold_signal_system/news_intelligence/repository.py"
+  - "db/**/*.sql"
+  - "scripts/init_db.py"
+  - "tests/test_persistent_runtime_state.py"
+alwaysApply: false
+---
+
+# Storage + Database Rules
+
+- Never drop or truncate without explicit approval.
+- Prefer additive, idempotent migrations and parameterized SQL.
+- Validate schema identifiers and keep data under the configured schema, normally `newxau`.
+- Preserve in-memory fallback and store timestamps in UTC.
+- Do not run migrations against unknown or production databases.
+- Explain affected tables, rollback, and fallback impact.

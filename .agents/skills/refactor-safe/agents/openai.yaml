@@ -1,0 +1,4 @@
+interface:
+  display_name: "Safe Refactor"
+  short_description: "Refactor NEWXAU without behavior drift"
+  default_prompt: "Use $refactor-safe to refactor a scoped NEWXAU area while preserving behavior."

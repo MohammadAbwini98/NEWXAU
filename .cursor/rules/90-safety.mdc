@@ -1,0 +1,19 @@
+---
+description: Anti-destructive, secret-handling, trading, and repository safety
+alwaysApply: true
+---
+
+# Safety Rules
+
+Never run without explicit authorization:
+
+- live Capital.com submission or real-money enablement;
+- destructive SQL or production migrations;
+- `git reset --hard` or `git clean -fdx`;
+- deletion of model artifacts or datasets;
+- wholesale rewrites of `pipeline.py`, `storage.py`, or `capital_execution.py`;
+- edits to `vendor/Kronos`.
+
+Never commit `.env`, credentials, tokens, raw DSNs, runtime databases, broker sessions, model weights/caches, sensitive execution exports, or transient AI-tool locks.
+
+Before finishing, inspect the diff; report changed files, tests, skipped verification, and whether runtime trading behavior changed.

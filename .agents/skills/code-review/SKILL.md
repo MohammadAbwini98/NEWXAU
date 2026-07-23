@@ -21,7 +21,7 @@ When asked to review code, use this structured process:
 - [ ] Are secrets or sensitive data exposed in logs?
 
 ## Architecture Checklist
-- [ ] Does this respect the pipeline decoupling (Data -> Indicators -> Models -> Strategy -> Trade -> Risk)?
+- [ ] Does this respect Data -> Indicators/SMC -> Models -> Strategy -> Trade Plan -> Risk -> Control Unit -> Execution decoupling?
 - [ ] Does this add heavy dependencies that could be avoided?
 
 ## Bug Checklist

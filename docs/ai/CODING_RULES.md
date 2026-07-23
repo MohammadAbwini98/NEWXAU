@@ -8,7 +8,7 @@
 
 ## Folder Conventions
 *   `src/gold_signal_system/`: Put all core domain logic here.
-*   `src/dashboard_static/`: All frontend files.
+*   `src/gold_signal_system/dashboard_static/`: All frontend files.
 *   `scripts/`: Runnable top-level commands. Do not put domain logic here, just orchestration.
 *   `tests/`: Standard pytest suite.
 

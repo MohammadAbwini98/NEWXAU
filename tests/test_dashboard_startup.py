@@ -96,6 +96,19 @@ class DashboardStartupTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("Active now", html)
         self.assertIn("Asia/Amman", html)
 
+    def test_control_unit_checkbox_saves_reject_stale_refreshes(self) -> None:
+        dashboard_path = os.path.join(ROOT, "src", "gold_signal_system", "dashboard_static", "index.html")
+        with open(dashboard_path, encoding="utf-8") as handle:
+            html = handle.read()
+
+        self.assertIn("let controlMutationRevision = 0;", html)
+        self.assertIn("let controlSaveQueue = Promise.resolve();", html)
+        self.assertIn("state.controlUnit = { ...state.controlUnit, config };", html)
+        self.assertIn("controlSaveQueue = controlSaveQueue", html)
+        self.assertIn("controlLoadBlocked", html)
+        self.assertIn("await queueControlConfigSave(config);", html)
+        self.assertIn('role="status" aria-live="polite"', html)
+
     async def test_latest_price_endpoint_reports_stream_state(self) -> None:
         price = await api.get_latest_price()
 

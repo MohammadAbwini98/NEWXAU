@@ -1,0 +1,4 @@
+interface:
+  display_name: "Performance Concurrency Review"
+  short_description: "Measure NEWXAU concurrency and performance"
+  default_prompt: "Use $performance-concurrency-review to review NEWXAU performance and concurrency with measurements."

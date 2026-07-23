@@ -1,0 +1,22 @@
+---
+description: XAUUSD Jordan-time market-session rules
+globs:
+  - "src/gold_signal_system/market_sessions.py"
+  - "src/gold_signal_system/market_hours.py"
+  - "tests/test_market_sessions.py"
+  - "tests/test_execution_control.py"
+alwaysApply: false
+---
+
+# XAUUSD Market Session Rules
+
+Timezone: `Asia/Amman`
+
+- `DAILY_BREAK`: 00:00-01:00, non-trading, highest priority.
+- `ASIA_LOW`: 00:00-10:00; effective trading window starts at 01:00 because `DAILY_BREAK` wins overlaps.
+- `LONDON_ACTIVE`: 10:00-16:00.
+- `US_OVERLAP`: 16:00-19:00.
+- `NY_ACTIVE`: 19:00-00:00.
+
+- Convert aware UTC timestamps through `ZoneInfo("Asia/Amman")`; never use server-local time.
+- Preserve legacy aliases and test exact boundaries, midnight crossing, and non-trading behavior.

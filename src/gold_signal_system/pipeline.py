@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from time import perf_counter
 from typing import Any
 
 from .config import ModelWeights, RiskLimits, RuntimeConfig
 from .contracts import DataQualityReport, FinalRecommendation, MarketContext, RecommendationStatus, SignalDirection
 from .data_engine import DataEngine, InMemoryCandleStore
-from .dynamic_weights import DynamicModelWeightService
+from .dynamic_weights import DynamicModelWeightService, ModelWeightResult
 from .health import SystemHealthService
 from .indicator_engine import FeatureIndicatorEngine
 from .live_control import LiveControlCenter, TelegramConfig
@@ -35,6 +36,7 @@ class CycleResult:
     recommendation: FinalRecommendation
     data_quality_report: DataQualityReport
     aggregation_counts: dict[str, int]
+    processing_timings_ms: dict[str, float]
 
 
 class GoldSignalSystem:
@@ -186,6 +188,8 @@ class GoldSignalSystem:
             raw_candles=candles,
             source_timeframe=source_timeframe,
             market_context=market_context,
+            data_reference_time=datetime.now(tz=UTC),
+            provider_status="AVAILABLE",
         )
 
     def run_signal_cycle(
@@ -193,26 +197,79 @@ class GoldSignalSystem:
         raw_candles: list[dict[str, Any]],
         source_timeframe: str = "1m",
         market_context: MarketContext | None = None,
+        data_reference_time: datetime | None = None,
+        provider_status: str = "UNKNOWN",
     ) -> CycleResult:
+        cycle_started = perf_counter()
+        processing_timings_ms: dict[str, float] = {}
         market_context = market_context or MarketContext()
 
+        stage_started = perf_counter()
         clean_candles, report = self.data_engine.clean_candles(
             raw_candles=raw_candles,
             instrument=self.runtime.instrument,
             timeframe=source_timeframe,
+            reference_time=data_reference_time,
+            provider_status=provider_status,
+            max_missing_ratio=self.runtime.data_quality_max_missing_ratio,
+            max_outlier_ratio=self.runtime.data_quality_max_outlier_ratio,
+            max_freshness_seconds=(
+                self.runtime.data_quality_freshness_multiplier
+                * self.data_engine.timeframe_seconds(source_timeframe)
+                if data_reference_time is not None
+                else None
+            ),
+            minimum_quality_score=self.runtime.data_quality_min_score,
         )
+        if market_context.spread > self.risk_engine.limits.max_spread:
+            report.spread_status = "BLOCKED"
+            report.blocking_reasons.append(
+                f"Spread {market_context.spread:.4f} exceeds {self.risk_engine.limits.max_spread:.4f}."
+            )
+        elif market_context.spread > self.risk_engine.limits.max_spread * 0.8:
+            report.spread_status = "CAUTION"
+        else:
+            report.spread_status = "OK"
         self.candle_store.upsert_many(clean_candles)
         self.storage.save_candles(clean_candles)
+        processing_timings_ms["data_validation"] = round((perf_counter() - stage_started) * 1000.0, 3)
 
+        stage_started = perf_counter()
         aggregation_counts: dict[str, int] = {}
         if source_timeframe == "1m":
+            incomplete_total = 0
             for target_tf in ("5m", "15m", "30m", "1h", "4h"):
-                aggregated = self.data_engine.aggregate_from_1m(clean_candles, target_tf)
+                all_aggregated = self.data_engine.aggregate_from_1m(clean_candles, target_tf)
+                complete_aggregated = self.data_engine.aggregate_from_1m(
+                    clean_candles,
+                    target_tf,
+                    require_complete=True,
+                )
+                incomplete_count = len(all_aggregated) - len(complete_aggregated)
+                incomplete_total += incomplete_count
+                aggregation_counts[f"{target_tf}_incomplete"] = incomplete_count
+                aggregated = complete_aggregated if self.runtime.enable_data_quality_gate else all_aggregated
                 self.candle_store.upsert_many(aggregated)
                 self.storage.save_candles(aggregated)
                 aggregation_counts[target_tf] = len(aggregated)
             self._top_up_native_timeframes(aggregation_counts)
+            if incomplete_total:
+                report.aggregation_status = (
+                    "FILTERED_INCOMPLETE" if self.runtime.enable_data_quality_gate else "PARTIAL_BUCKETS_PRESENT"
+                )
+                report.issues.append(f"Incomplete higher-timeframe buckets detected: {incomplete_total}")
+            else:
+                report.aggregation_status = "COMPLETE"
+        else:
+            report.aggregation_status = "NOT_APPLICABLE"
+        report.blocking_reasons = list(dict.fromkeys(report.blocking_reasons))
+        data_quality_blocked = self.runtime.enable_data_quality_gate and bool(report.blocking_reasons)
+        report.gate_status = "BLOCKED" if data_quality_blocked else (
+            "PASSED" if self.runtime.enable_data_quality_gate else "MONITOR_ONLY"
+        )
+        processing_timings_ms["aggregation"] = round((perf_counter() - stage_started) * 1000.0, 3)
 
+        stage_started = perf_counter()
         cycle_tf = self.runtime.cycle_timeframe
         candles_for_cycle = self.candle_store.get(self.runtime.instrument, cycle_tf, limit=300)
         if len(candles_for_cycle) < 40:
@@ -245,31 +302,55 @@ class GoldSignalSystem:
                 market_context.minutes_since_high_impact_news = news_risk.minutes_since_event
         elif news_risk.status == "CAUTION":
             market_context.special_volatility_mode = True
+        processing_timings_ms["feature_and_context"] = round((perf_counter() - stage_started) * 1000.0, 3)
 
+        stage_started = perf_counter()
         prediction_time = datetime.now(tz=UTC)
-        model_votes = self.model_engine.run_models(
-            snapshot,
-            features,
-            prediction_time=prediction_time,
-            candles=candles_for_cycle,
-        )
+        if data_quality_blocked:
+            model_votes = self.model_engine.build_abstain_predictions(snapshot, prediction_time=prediction_time)
+        else:
+            model_votes = self.model_engine.run_models(
+                snapshot,
+                features,
+                prediction_time=prediction_time,
+                candles=candles_for_cycle,
+            )
         self.storage.save_model_predictions(model_votes)
+        processing_timings_ms["model_inference"] = round((perf_counter() - stage_started) * 1000.0, 3)
 
+        stage_started = perf_counter()
         base_weights = dict(self.configured_model_weights.weights)
-        dynamic_weight_results = self.dynamic_weight_service.calculate(
-            base_weights=base_weights,
-            predictions=model_votes,
-            metrics=self.performance_tracker.metrics(),
-            market_regime=market_regime.primary_regime,
-            session=snapshot.session_name,
-        )
+        if data_quality_blocked:
+            current_weights = dict(self.model_engine.model_weights.weights)
+            weight_total = sum(current_weights.values()) or 1.0
+            dynamic_weight_results = [
+                ModelWeightResult(
+                    model_name=vote.model_name.lower(),
+                    base_weight=float(base_weights.get(vote.model_name.lower(), 0.0)),
+                    effective_weight=float(current_weights.get(vote.model_name.lower(), 0.0)) / weight_total,
+                    adjustment_reason={"reason": "Data-quality abstention retained existing weights."},
+                )
+                for vote in model_votes
+            ]
+        else:
+            dynamic_weight_results = self.dynamic_weight_service.calculate(
+                base_weights=base_weights,
+                predictions=model_votes,
+                metrics=self.performance_tracker.metrics(),
+                market_regime=market_regime.primary_regime,
+                session=snapshot.session_name,
+            )
         effective_weights = {item.model_name: item.effective_weight for item in dynamic_weight_results}
         self.model_engine.model_weights = ModelWeights(weights=effective_weights)
         self.storage.save_model_weight_state(
             weights=effective_weights,
             history=[item.model_dump() for item in dynamic_weight_results],
             profile_versions=list(self.dynamic_weight_service.profile_versions[-1:]),
-            reason="signal_cycle_dynamic_weight_update",
+            reason=(
+                "data_quality_abstention_weights_unchanged"
+                if data_quality_blocked
+                else "signal_cycle_dynamic_weight_update"
+            ),
         )
 
         ensemble = self.model_engine.build_ensemble(model_votes, prediction_time=prediction_time)
@@ -349,6 +430,14 @@ class GoldSignalSystem:
         else:
             final_decision.status = RecommendationStatus.HOLD
 
+        if data_quality_blocked:
+            final_decision.status = RecommendationStatus.HOLD
+            final_decision.risk_status = "BLOCKED"
+            for reason in report.blocking_reasons:
+                message = f"Data quality gate: {reason}"
+                if message not in final_decision.blocked_reasons:
+                    final_decision.blocked_reasons.append(message)
+
         self.storage.save_strategy_decision(final_decision)
 
         recommendation = self.recommendation_builder.build(
@@ -381,6 +470,8 @@ class GoldSignalSystem:
         self.storage.save_signal_entry_plans(recommendation_id, [candidate.model_dump() for candidate in entry_plan_candidates])
         self.storage.save_market_regime(recommendation_id, market_regime.model_dump())
         self.storage.save_timeframe_confirmation(recommendation_id, multi_timeframe.model_dump())
+        processing_timings_ms["decision"] = round((perf_counter() - stage_started) * 1000.0, 3)
+        processing_timings_ms["pre_persistence_total"] = round((perf_counter() - cycle_started) * 1000.0, 3)
         self.storage.save_signal_snapshot(
             self._build_signal_snapshot(
                 signal_id=recommendation_id,
@@ -395,17 +486,21 @@ class GoldSignalSystem:
                 entry_plans=[candidate.model_dump() for candidate in entry_plan_candidates],
                 news_risk=news_risk.model_dump(),
                 health=health,
+                data_quality=report.model_dump(mode="json"),
+                processing_timings_ms=processing_timings_ms,
             )
         )
         if risk_check is not None:
             self.storage.save_risk_check(risk_check)
         self.validate_signal_outcomes(candles_for_cycle)
         self._send_telegram_alert_if_enabled(recommendation)
+        processing_timings_ms["total"] = round((perf_counter() - cycle_started) * 1000.0, 3)
 
         return CycleResult(
             recommendation=recommendation,
             data_quality_report=report,
             aggregation_counts=aggregation_counts,
+            processing_timings_ms=processing_timings_ms,
         )
 
     def _top_up_native_timeframes(self, aggregation_counts: dict[str, int], minimum_candles: int = 10) -> None:
@@ -506,6 +601,8 @@ class GoldSignalSystem:
         entry_plans: list[dict[str, Any]],
         news_risk: dict[str, Any],
         health: dict[str, Any],
+        data_quality: dict[str, Any],
+        processing_timings_ms: dict[str, float],
     ) -> SignalSnapshot:
         indicator_summary = recommendation.indicator_summary
         market_structure = {
@@ -522,6 +619,8 @@ class GoldSignalSystem:
         }
         risk_filters["news_filter"] = news_risk
         risk_filters["system_health"] = health
+        risk_filters["data_quality"] = data_quality
+        risk_filters["processing_timings_ms"] = dict(processing_timings_ms)
         entry_plan = trade_plan.model_dump(mode="json") if trade_plan is not None else {
             "entry_type": None,
             "reason": "No trade plan for HOLD or blocked no-entry recommendation.",

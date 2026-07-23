@@ -4,7 +4,7 @@ This file contains the core facts and rules for ChatGPT/Codex, Gemini, Claude, a
 
 ## Project Overview
 
-*   **Name**: Signal Recommendation System (NEWXAU / ETHUSD).
+*   **Name**: NEWXAU / XAUUSD Signal Recommendation System.
 *   **Goal**: Provides automated trading signals, backtesting, paper trading, and Capital.com live execution integration.
 *   **Key Components**: Data Engine, Indicator Engine, Model Ensemble, Strategy Brain, Trade Plan Engine, Risk Engine, API/Dashboard, Storage, and Capital.com execution.
 
@@ -13,12 +13,13 @@ This file contains the core facts and rules for ChatGPT/Codex, Gemini, Claude, a
 *   **Backend**: Python, FastAPI, Uvicorn, websockets.
 *   **Data Science/ML**: pandas, numpy, scikit-learn, PyTorch, LightGBM, HuggingFace Hub, ONNX.
 *   **Database**: PostgreSQL (`psycopg`), falling back to in-memory if unavailable.
-*   **Frontend**: Vanilla HTML/JS (`src/dashboard_static/`).
+*   **Frontend**: Vanilla HTML/JS (`src/gold_signal_system/dashboard_static/`).
 
 ## Repository Structure
 
 *   `src/gold_signal_system/`: Main application code (`api.py`, `pipeline.py`, `storage.py`, `capital_execution.py`, etc.).
-*   `src/dashboard_static/`: Frontend web UI.
+*   `src/gold_signal_system/dashboard_static/`: Frontend web UI.
+*   `vendor/Kronos/`: Upstream Git submodule; do not edit unless explicitly requested.
 *   `scripts/`: Execution scripts (`run_api.py`, `run_cycle.py`, `init_db.py`, etc.).
 *   `tests/`: Pytest test suite.
 *   `db/`: PostgreSQL schema (`schema.sql`).
@@ -37,19 +38,21 @@ This file contains the core facts and rules for ChatGPT/Codex, Gemini, Claude, a
 ## AI Memory
 
 *   Use `docs/ai/` as the shared project memory folder for architecture, commands, testing notes, security notes, task history, decisions, and known issues.
+*   Start with `docs/ai/README.md`, `docs/ai/CURRENT_STATE.md`, and `docs/ai/HANDOFF.md`, then load only task-relevant memory.
 *   After code, command, architecture, configuration, test, or documentation changes, update `docs/ai/TASK_LOG.md` and any other relevant `docs/ai/` files.
 *   Run `node scripts/ai-memory/check-memory.mjs` before finishing memory/tooling changes.
 
 ## Coding Rules
 
 *   Follow strict type hinting in Python.
-*   Preserve the decoupling between pipeline phases (Data -> Indicators -> Models -> Strategy -> Trade -> Risk).
+*   Preserve the decoupling between pipeline phases (Data -> Indicators/SMC -> Models -> Strategy -> Trade Plan -> Risk -> Control Unit -> Execution).
 *   Do not hardcode secrets. Use `.env` and `config.py`.
 
 ## Architecture Rules
 
 *   **Resilience**: The system must gracefully fallback to in-memory if PostgreSQL is down. If Capital.com API is down, background cycle runner must back off and retry. If a specific ML model artifact is missing, it should fall back to deterministic synthetic inference, not crash the ensemble.
 *   **Execution**: Automated execution must remain OFF by default. Do not remove the `CAPITAL_EXECUTION_DEMO_ONLY=1` safety guard rails.
+*   **Sessions**: Store timestamps in UTC and resolve XAUUSD sessions through `Asia/Amman`. `DAILY_BREAK` is non-trading and has highest priority.
 
 ## Security & Safety Rules
 
@@ -69,3 +72,4 @@ When answering user requests:
 *   Do not rewrite `pipeline.py` or `storage.py` entirely.
 *   Do not introduce heavy frontend frameworks (React/Vue/Angular) unless explicitly requested; currently using Vanilla JS.
 *   Do not bypass existing risk checks in `risk_engine.py` or `capital_execution.py`.
+*   Do not modify `vendor/Kronos`, model weights, datasets, or runtime state unless explicitly requested.

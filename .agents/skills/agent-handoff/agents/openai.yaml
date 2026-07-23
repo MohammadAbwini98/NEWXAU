@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Handoff"
+  short_description: "Capture safe, exact NEWXAU transfer state"
+  default_prompt: "Use $agent-handoff to capture the active NEWXAU work state for a safe handoff."

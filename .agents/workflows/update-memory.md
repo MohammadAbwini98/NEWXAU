@@ -7,7 +7,7 @@ description: Update and verify AI memory files after project changes
 When this workflow runs:
 
 1. Review recent project changes.
-2. Read AGENTS.md, CLAUDE.md, GEMINI.md, docs/ai/CURRENT_STATE.md, docs/ai/TASK_LOG.md, and docs/ai/RULES.md.
+2. Read `AGENTS.md`, `docs/ai/README.md`, `docs/ai/CURRENT_STATE.md`, `docs/ai/HANDOFF.md`, and task-relevant memory.
 3. Update relevant docs/ai files.
 4. Run node scripts/ai-memory/check-memory.mjs.
 5. Fix reported memory issues.
