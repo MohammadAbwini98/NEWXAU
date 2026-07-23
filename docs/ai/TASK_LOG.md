@@ -630,6 +630,9 @@ until the private Python runtime and signing inputs exist.
 - Headless Electron production renderer, authenticated backend lifecycle,
   WebSocket connection, graceful shutdown, and legacy/desktop screenshot
   captures passed.
+- GitHub Actions initially failed before collection because `pytest` is not a
+  runtime dependency in `requirements.txt`; desktop CI now installs the test
+  runner explicitly.
 - A combined legacy dashboard-startup run reproduced the known local
   `torch`/`safetensors` native access violation; it was isolated from the safe
   gate and made no broker request.
