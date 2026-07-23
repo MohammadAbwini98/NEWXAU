@@ -21,6 +21,7 @@ jobs:
         shell: pwsh
         env:
           PYTHONPATH: src
+          DATA_PROVIDER: synthetic
           ENABLE_BACKGROUND_CYCLE_RUNNER: "0"
           ENABLE_LIVE_PRICE_STREAM: "0"
           CAPITAL_EXECUTION_ENABLED: "0"
