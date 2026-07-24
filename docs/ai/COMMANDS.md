@@ -25,6 +25,7 @@ python scripts/init_db.py
 ## Test
 
 ```powershell
+$env:PYTHONPATH=(Resolve-Path '.\src').Path
 .\.venv\Scripts\python.exe -m pytest tests -q
 .\.venv\Scripts\python.exe -m pytest tests\test_desktop_runtime.py tests\test_desktop_contract_baseline.py tests\test_execution_control.py tests\test_capital_execution.py tests\test_market_sessions.py -q
 .\.venv\Scripts\python.exe -m pytest tests\test_market_sessions.py tests\test_execution_control.py -q

@@ -1,6 +1,6 @@
 # Features
 
-Last updated: 2026-07-21
+Last updated: 2026-07-24
 
 ## Existing Features
 
@@ -24,6 +24,10 @@ Last updated: 2026-07-21
 - Default-off fail-closed data-quality gate that skips model adapters and produces auditable deterministic HOLD abstentions.
 - Per-cycle stage timing in API responses and persisted signal snapshot context.
 - Cost-aware legacy backtest results with gross/net R, blocked-signal counts, and explicit cost assumptions.
+- Electron desktop startup that selects synthetic data for an unconfigured
+  clean install, selects Capital.com when its complete encrypted credential
+  set or explicit environment file is available, and preserves explicit
+  provider overrides.
 
 ## Execution Orders Payload Export
 

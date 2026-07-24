@@ -699,3 +699,51 @@ runtime and diagnostics security gaps before release packaging.
   clean non-admin Windows machine.
 - Configure signing, verify signed hashes/Authenticode, complete parity
   acceptance, and only then mark PR #2 ready.
+
+## 2026-07-24 - Fix Clean Desktop Backend Startup
+
+### Problem
+
+The unpacked desktop showed `Backend exited unexpectedly (code 1)` and could
+not load data. The redacted packaged traceback showed that the Python runtime
+defaulted to `DATA_PROVIDER=capitalcom` while the clean desktop secret store
+contained no Capital.com credentials.
+
+### Changes
+
+- Added desktop provider resolution before spawning Python.
+- Preserved explicit `DATA_PROVIDER` values.
+- Selected Capital.com when an explicit `CAPITAL_ENV_FILE` or a complete API
+  key, identifier, and password set is available.
+- Selected the synthetic provider only when the desktop is otherwise
+  unconfigured, keeping execution OFF and demo-only.
+- Added regression coverage for clean, partial-credential, complete-credential,
+  explicit-env-file, and explicit-provider cases.
+
+### Verification
+
+- 17 Vitest tests passed.
+- TypeScript typecheck and production Electron build passed.
+- 44 focused Python tests and 13 market-session subtests passed with synthetic
+  data and broker execution disabled.
+- `npm audit` reported zero vulnerabilities.
+- Private runtime verification passed.
+- Node 22.12 produced fresh unpacked, NSIS installer, and portable
+  applications.
+- Packaged headless smoke reported `renderer_loaded: true`,
+  `backend_phase: ready`, exit code 0, and empty stderr.
+- The corrected portable executable completed its first-run extraction and
+  headless lifecycle with exit code 0, backend ready, and no backend stderr.
+- Visual capture showed the Overview route connected with populated
+  decision/model/history data.
+- Installer SHA-256:
+  `120137E8F5C780CE72EFC4F4643EDFF8CED84F5434FF725A8ABD60414544BE0C`
+- Portable SHA-256:
+  `C00766567488251D6570080A0B184FD0BF85095A54E8A5EF9B1EA6476CFC9D3C`
+
+### Operational Note
+
+Live Capital.com prices still require complete encrypted credentials in
+Desktop Settings or an explicitly configured provider environment. The
+credential-free fallback is synthetic and must not be represented as live
+market data.

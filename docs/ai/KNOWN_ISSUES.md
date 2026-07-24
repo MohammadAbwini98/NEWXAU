@@ -18,6 +18,9 @@ Last updated: 2026-07-24
 - Local unsigned desktop packages are not release artifacts. Code signing,
   clean non-admin machine validation, installer/uninstaller testing, and parity
   acceptance remain mandatory promotion gates.
+- The locally installed Node 18 runtime can run desktop tests and builds but
+  fails Electron Builder when its CommonJS code loads the ESM-only hashing
+  dependency. Use the required Node 22.12+ packaging toolchain.
 
 ## Manual Verification Needed
 

@@ -50,8 +50,12 @@ verified runtime inventory.
 
 **Impact:** Legacy Python entry points retain their existing `.env` behavior.
 Desktop startup falls back to in-memory storage when no explicit PostgreSQL DSN
-is configured, while controlled warmup bytecode remains hashed and repeat
-runtime verification is stable.
+is configured. With no explicit provider and no complete Capital.com
+credential set, the desktop uses synthetic data so the owned backend remains
+available without weakening execution defaults. An explicit `DATA_PROVIDER`,
+`CAPITAL_ENV_FILE`, or complete encrypted Capital.com credential set remains
+authoritative. Controlled warmup bytecode remains hashed and repeat runtime
+verification is stable.
 
 **Related files:** `app/main/backendProcessManager.ts`,
 `scripts/build-desktop-runtime.ps1`, `docs/desktop/PACKAGING.md`

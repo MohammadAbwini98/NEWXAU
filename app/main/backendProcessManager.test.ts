@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   BackendProcessManager,
   assertBackendRequestAllowed,
+  resolveDesktopDataProvider,
   resolveDesktopSecretEnvironment
 } from "./backendProcessManager";
 import type { AppPaths } from "./appPaths";
@@ -31,6 +32,31 @@ describe("backend request bridge policy", () => {
     expect(environment.CAPITAL_API_KEY).toBe("explicit-capital");
     expect(environment.CAPITALCOM_PASSWORD).toBe("");
     expect(environment.TELEGRAM_BOT_TOKEN).toBe("");
+  });
+
+  it("starts clean desktop installs with safe synthetic data", () => {
+    expect(resolveDesktopDataProvider({})).toBe("synthetic");
+    expect(resolveDesktopDataProvider({
+      CAPITALCOM_API_KEY: "api-key-only"
+    })).toBe("synthetic");
+  });
+
+  it("selects Capital.com when complete credentials or an explicit env file is configured", () => {
+    expect(resolveDesktopDataProvider({
+      CAPITALCOM_API_KEY: "api-key",
+      CAPITALCOM_IDENTIFIER: "identifier",
+      CAPITALCOM_PASSWORD: "password"
+    })).toBe("capitalcom");
+    expect(resolveDesktopDataProvider({
+      CAPITAL_ENV_FILE: "C:/configured/capital.env"
+    })).toBe("capitalcom");
+  });
+
+  it("preserves an explicit desktop provider choice", () => {
+    expect(resolveDesktopDataProvider({
+      DATA_PROVIDER: "csv",
+      CANDLE_CSV_PATH: "C:/data/candles.csv"
+    })).toBe("csv");
   });
 
   it("reports a blocking failure without spawning when no verified runtime is available", async () => {

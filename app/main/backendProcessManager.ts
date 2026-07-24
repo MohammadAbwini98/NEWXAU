@@ -47,6 +47,27 @@ export function resolveDesktopSecretEnvironment(
   );
 }
 
+export function resolveDesktopDataProvider(environment: NodeJS.ProcessEnv): string {
+  const configuredProvider = environment.DATA_PROVIDER?.trim();
+  if (configuredProvider) return configuredProvider;
+
+  if (environment.CAPITAL_ENV_FILE?.trim()) return "capitalcom";
+
+  const hasApiKey = Boolean(
+    environment.CAPITALCOM_API_KEY?.trim() || environment.CAPITAL_API_KEY?.trim()
+  );
+  const hasIdentifier = Boolean(
+    environment.CAPITALCOM_IDENTIFIER?.trim()
+      || environment.CAPITAL_IDENTIFIER?.trim()
+      || environment.CAPITAL_EMAIL?.trim()
+  );
+  const hasPassword = Boolean(
+    environment.CAPITALCOM_PASSWORD?.trim() || environment.CAPITAL_PASSWORD?.trim()
+  );
+
+  return hasApiKey && hasIdentifier && hasPassword ? "capitalcom" : "synthetic";
+}
+
 export function assertBackendRequestAllowed(path: string, method: string): void {
   if (!path.startsWith("/") || path.startsWith("//")) throw new Error("Invalid backend path.");
   const normalizedMethod = method.toUpperCase();
@@ -142,6 +163,11 @@ export class BackendProcessManager extends EventEmitter {
       secretEnvironment,
       process.env
     );
+    const backendEnvironment = {
+      ...process.env,
+      ...secretEnvironment,
+      ...isolatedSecretEnvironment
+    };
     await mkdir(this.paths.logsRoot, { recursive: true });
     await mkdir(this.paths.runtimeRoot, { recursive: true });
     this.setState({
@@ -161,9 +187,8 @@ export class BackendProcessManager extends EventEmitter {
         shell: false,
         windowsHide: true,
         env: {
-          ...process.env,
-          ...secretEnvironment,
-          ...isolatedSecretEnvironment,
+          ...backendEnvironment,
+          DATA_PROVIDER: resolveDesktopDataProvider(backendEnvironment),
           PYTHONDONTWRITEBYTECODE: "1",
           PYTHONUNBUFFERED: "1",
           NEWXAU_DESKTOP_TOKEN: this.token,

@@ -18,6 +18,11 @@ Last updated: 2026-07-24
 - Packaged desktop startup fails closed when the bundled Python runtime is
   absent. Backend logs and desktop diagnostics pass through centralized
   sensitive-data redaction.
+- Clean desktop installs without a configured data provider or complete
+  Capital.com credentials start with the synthetic provider instead of
+  crashing during backend import. An explicit `DATA_PROVIDER`,
+  `CAPITAL_ENV_FILE`, or complete encrypted Capital.com credential set remains
+  authoritative.
 - Desktop routes now cover Overview, Live Signal, Execution, Control Unit,
   Signal History, Models, Indicators, Risk, Backtesting, Optimization, Replay,
   News Intelligence, System Health, and Settings.
@@ -57,7 +62,8 @@ Last updated: 2026-07-24
   validation remain gated.
 - Node 22.12 or newer is required for packaging. The current local Node 18
   runtime can type-check, test, build, and run Electron smoke validation, but
-  does not meet the declared packaging toolchain floor.
+  does not meet the declared packaging toolchain floor and currently fails
+  Electron Builder while loading its ESM hashing dependency.
 - The legacy dashboard-startup test can enter real local Kronos inference and
   trigger a Windows native `torch`/`safetensors` access violation. Use the safe
   desktop/execution/control/session gate until the native artifact is repaired.
