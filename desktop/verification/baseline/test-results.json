@@ -1,0 +1,50 @@
+{
+  "captured_at": "2026-07-23T23:30:00+03:00",
+  "environment": {
+    "background_cycle": false,
+    "live_price_stream": false,
+    "capital_execution_enabled": false,
+    "capital_execution_auto_execute": false,
+    "capital_execution_demo_only": true
+  },
+  "results": [
+    {
+      "command": "python -m pytest tests/test_desktop_runtime.py tests/test_desktop_contract_baseline.py tests/test_execution_control.py tests/test_capital_execution.py tests/test_market_sessions.py -q",
+      "status": "passed",
+      "tests": 44,
+      "subtests": 13
+    },
+    {
+      "command": "npm test",
+      "status": "passed",
+      "tests": 6
+    },
+    {
+      "command": "npm run typecheck",
+      "status": "passed"
+    },
+    {
+      "command": "npm run build",
+      "status": "passed"
+    },
+    {
+      "command": "npm audit",
+      "status": "passed",
+      "vulnerabilities": 0
+    },
+    {
+      "command": "Electron headless desktop smoke",
+      "status": "passed",
+      "renderer_loaded": true,
+      "backend_phase": "ready",
+      "execution_enabled": false,
+      "demo_only": true
+    },
+    {
+      "command": "npm run runtime:verify",
+      "status": "gated",
+      "reason": "Private Windows Python runtime has not been supplied through the approved release artifact process."
+    }
+  ],
+  "known_environment_issue": "The legacy dashboard-startup test can invoke the local Kronos safetensor and trigger a Windows native access violation. It is excluded from the safe migration gate and is not a desktop regression."
+}

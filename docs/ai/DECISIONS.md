@@ -1,6 +1,64 @@
 # Decisions
 
-Last updated: 2026-07-21
+Last updated: 2026-07-24
+
+## 2026-07-24 - Retain Legacy Dashboard Until Explicit Parity Acceptance
+
+**Decision:** Keep the legacy dashboard available for every desktop capability
+classified `Legacy fallback`. Treat the absence of direct Electron order
+submission as `Restricted by design`.
+
+**Reason:** Paper Trading, diagnostics, replay workflow depth, detailed
+charts/filters, desktop-native exports, and some settings are not yet accepted
+as complete desktop parity. Direct renderer execution would weaken the intended
+process boundary.
+
+**Impact:** PR #2 remains a draft. Legacy removal requires a complete parity
+matrix and explicit product cutover approval.
+
+**Related files:** `docs/desktop/PARITY_MATRIX.md`,
+`app/main/backendProcessManager.ts`
+
+## 2026-07-24 - Packaged Python Is Private And Fail-Closed
+
+**Decision:** Packaged mode may launch only
+`resources/python/python.exe`. Development may use the staged private runtime,
+then `.venv`, and may use system Python only with
+`NEWXAU_ALLOW_SYSTEM_PYTHON=1`.
+
+**Reason:** A packaged trading application must not silently inherit an
+unverified machine-wide interpreter or dependency set.
+
+**Impact:** Missing packaged Python produces a blocking backend failure. Release
+verification requires exact policy versions, hashed runtime/model inventories,
+native inference, PostgreSQL driver loading, and safety-environment assertions.
+
+**Related files:** `app/main/pythonRuntime.ts`,
+`scripts/build-desktop-runtime.ps1`,
+`scripts/verify-desktop-runtime.mjs`
+
+## 2026-07-24 - Desktop Secrets And Runtime Inventory Stay Isolated
+
+**Decision:** The Electron-owned backend uses encrypted desktop secrets or
+explicit process environment values, passes absent sensitive keys as empty, and
+disables runtime bytecode writes. The runtime builder warms approved imports
+before generating the manifest.
+
+**Reason:** Desktop development must not silently inherit repository `.env`
+credentials, and first launch must not create files that were absent from the
+verified runtime inventory.
+
+**Impact:** Legacy Python entry points retain their existing `.env` behavior.
+Desktop startup falls back to in-memory storage when no explicit PostgreSQL DSN
+is configured. With no explicit provider and no complete Capital.com
+credential set, the desktop uses synthetic data so the owned backend remains
+available without weakening execution defaults. An explicit `DATA_PROVIDER`,
+`CAPITAL_ENV_FILE`, or complete encrypted Capital.com credential set remains
+authoritative. Controlled warmup bytecode remains hashed and repeat runtime
+verification is stable.
+
+**Related files:** `app/main/backendProcessManager.ts`,
+`scripts/build-desktop-runtime.ps1`, `docs/desktop/PACKAGING.md`
 
 ## 2026-07-21 - Measure Data Quality Always, Gate Inference Only By Explicit Opt-In
 
@@ -82,9 +140,26 @@ Last updated: 2026-07-21
 
 **Reason:** A hardcoded machine-local path can silently import credentials or stale instrument/database settings and makes runtime behavior depend on one developer workstation.
 
-**Impact:** Operators who relied on the old implicit external env path must set `CAPITAL_ENV_FILE` explicitly. Built-in defaults now use XAUUSD for `TRADING_INSTRUMENT` and `CAPITALCOM_EPIC`.
+**Impact:** Operators who relied on the old implicit external env path must set `CAPITAL_ENV_FILE` explicitly. The internal `TRADING_INSTRUMENT` remains XAUUSD. The Capital.com epic was corrected separately on 2026-07-24.
 
 **Related files:** `src/gold_signal_system/config.py`, `README.md`, `tests/test_config_defaults.py`
+
+## 2026-07-24 - Separate XAUUSD From The Capital.com GOLD Epic
+
+**Decision:** Keep `XAUUSD` as the internal strategy/display instrument and
+default the Capital.com market epic to `GOLD`.
+
+**Reason:** Capital.com identifies Gold Spot with the epic `GOLD`; using
+`XAUUSD` produced REST 404 responses and websocket subscription errors.
+
+**Impact:** Candle polling and live price streaming target the broker's valid
+market identifier while recommendations continue to use XAUUSD. Explicit
+`CAPITALCOM_EPIC`, `CAPITAL_DEFAULT_EPIC`, and `TRADING_PROVIDER_SYMBOL`
+overrides still take precedence. Execution remains disabled by default,
+auto-execution remains off, and demo-only enforcement is unchanged.
+
+**Related files:** `src/gold_signal_system/config.py`,
+`tests/test_config_defaults.py`, `docs/capital_execution.md`
 
 ## 2026-06-30 - Jordan Time Is Canonical For XAUUSD Sessions
 

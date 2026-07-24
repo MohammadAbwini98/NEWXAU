@@ -4,19 +4,24 @@ import asyncio
 from contextlib import suppress
 import csv
 from datetime import UTC, datetime
+import hmac
 import json
+import os
 from pathlib import Path
+from time import monotonic
 from typing import Any
 
 from dateutil import parser
-from fastapi import FastAPI, Query, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse, Response
+from fastapi import FastAPI, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, JSONResponse, Response
 
 from .backtesting import BacktestConfig, BacktestingEngine
 from .capital_execution import CapitalExecutionService
 from .capital_stream import CapitalLivePriceStream, LivePriceTick
 from .config import ModelWeights, RiskLimits, RuntimeConfig
 from .contracts import EXECUTION_CONTROL_SESSIONS, ExecutionControlConfig, FinalRecommendation, MarketContext
+from .desktop_runtime import request_shutdown, resource_root, runtime_root
 from .execution_control import ExecutionControlService
 from .news_filter import EconomicNewsEvent
 from .news_intelligence.models import MacroEventModel
@@ -33,6 +38,16 @@ from .walk_forward import WalkForwardBacktestService, WalkForwardConfig
 from .strategy_brain import StrategyThresholdProfile
 
 app = FastAPI(title="XAUUSD Signal System API", version="1.0.0")
+desktop_token = os.getenv("NEWXAU_DESKTOP_TOKEN")
+desktop_origin = os.getenv("NEWXAU_DESKTOP_ORIGIN")
+if desktop_origin:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[desktop_origin],
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+        allow_headers=["Authorization", "Content-Type", "Accept"],
+    )
 runtime = RuntimeConfig()
 system = GoldSignalSystem(runtime=runtime)
 event_bus = EventBus()
@@ -60,8 +75,29 @@ background_cycle_status: dict[str, Any] = {
     "consecutive_errors": 0,
 }
 seed_lock = asyncio.Lock()
+seed_retry_after_monotonic = 0.0
+seed_last_error_at: str | None = None
 cycle_execution_lock = asyncio.Lock()
 broker_execution_lock = asyncio.Lock()
+
+
+def _desktop_token_matches(candidate: str | None) -> bool:
+    if not desktop_token or not candidate:
+        return False
+    return hmac.compare_digest(candidate, desktop_token)
+
+
+@app.middleware("http")
+async def desktop_api_authentication(request: Request, call_next):
+    if desktop_token and request.url.path.startswith("/api/"):
+        authorization = request.headers.get("authorization", "")
+        scheme, _, credential = authorization.partition(" ")
+        if scheme.lower() != "bearer" or not _desktop_token_matches(credential):
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "A valid NEWXAU desktop token is required."},
+            )
+    return await call_next(request)
 
 
 def _now_iso() -> str:
@@ -249,18 +285,36 @@ async def _publish_price_stream_status(status: str, data: dict[str, Any]) -> Non
 
 
 async def _seed_if_needed() -> None:
+    global seed_last_error_at, seed_retry_after_monotonic
+
     if system.storage.latest_recommendation() is not None:
+        return
+    if monotonic() < seed_retry_after_monotonic:
         return
 
     async with seed_lock:
         if system.storage.latest_recommendation() is not None:
             return
+        if monotonic() < seed_retry_after_monotonic:
+            return
 
-        cycle = await _run_cycle_with_retries(
-            source_timeframe="1m",
-            market_context=MarketContext(),
-            candles=None,
-        )
+        try:
+            cycle = await _run_cycle_with_retries(
+                source_timeframe="1m",
+                market_context=MarketContext(),
+                candles=None,
+            )
+        except Exception as exc:
+            seed_last_error_at = _now_iso()
+            seed_retry_after_monotonic = monotonic() + max(
+                float(runtime.live_cycle_retry_backoff_seconds),
+                5.0,
+            )
+            _record_background_cycle_error(exc, source="dashboard_seed")
+            return
+
+        seed_last_error_at = None
+        seed_retry_after_monotonic = 0.0
 
         payload = {
             "recommendation": cycle.recommendation.model_dump(mode="json"),
@@ -273,6 +327,32 @@ async def _seed_if_needed() -> None:
         if latest_id is not None:
             payload["recommendation"]["id"] = latest_id
         await _publish_cycle_events(payload)
+
+
+def _dashboard_data_status() -> dict[str, Any]:
+    if system.storage.latest_recommendation() is not None:
+        return {
+            "status": "READY",
+            "message": "Signal data is available.",
+            "last_error_at": None,
+            "retry_after_seconds": 0,
+        }
+    if seed_last_error_at is not None:
+        return {
+            "status": "ERROR",
+            "message": (
+                "Signal data is temporarily unavailable. Check System Health and market-data "
+                "provider settings; NEWXAU will retry automatically."
+            ),
+            "last_error_at": seed_last_error_at,
+            "retry_after_seconds": max(int(seed_retry_after_monotonic - monotonic()), 0),
+        }
+    return {
+        "status": "WAITING",
+        "message": "Waiting for the first signal cycle to complete.",
+        "last_error_at": None,
+        "retry_after_seconds": 0,
+    }
 
 
 async def _background_live_cycle_runner() -> None:
@@ -601,7 +681,9 @@ async def get_favicon():
 @app.get("/api/dashboard/summary")
 async def get_dashboard_summary() -> dict[str, Any]:
     await _seed_if_needed()
-    return system.dashboard_summary()
+    summary = system.dashboard_summary()
+    summary["data_status"] = _dashboard_data_status()
+    return summary
 
 
 @app.get("/api/dashboard/current-signal")
@@ -624,6 +706,20 @@ async def get_latest_signal() -> dict[str, Any]:
 
 @app.get("/api/price/latest")
 async def get_latest_price() -> dict[str, Any]:
+    provider_name = (runtime.data_provider or "").strip().lower()
+    is_capital_provider = provider_name in {"capitalcom", "capital", "capital.com"}
+    if not is_capital_provider and latest_price_tick is None:
+        return {
+            "status": "REFERENCE_ONLY",
+            "instrument": runtime.instrument,
+            "epic": runtime.capitalcom_epic,
+            "source": f"{provider_name or 'unknown'}.candles",
+            "stream": latest_price_stream_status,
+            "message": (
+                "This data provider does not supply a live websocket quote. "
+                "The desktop shows the latest signal price as a reference only."
+            ),
+        }
     if latest_price_stream_status.get("status") == "MARKET_CLOSED":
         return {
             "status": "MARKET_CLOSED",
@@ -1684,8 +1780,52 @@ async def ingest_paper_outcome(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+@app.get("/api/desktop/readiness")
+async def get_desktop_readiness() -> dict[str, Any]:
+    return {
+        "status": "READY",
+        "desktop_mode": bool(desktop_token),
+        "pid": os.getpid(),
+        "api_version": app.version,
+    }
+
+
+@app.get("/api/desktop/runtime")
+async def get_desktop_runtime() -> dict[str, Any]:
+    return {
+        "status": "READY",
+        "pid": os.getpid(),
+        "runtime_root": str(runtime_root()),
+        "resource_root": str(resource_root()),
+        "desktop_mode": bool(desktop_token),
+        "execution": {
+            "enabled": bool(runtime.capital_execution_enabled),
+            "auto_execute": bool(runtime.capital_execution_auto_execute),
+            "demo_only": bool(runtime.capital_execution_demo_only),
+        },
+        "workers": {
+            "background_cycle": _background_cycle_health(),
+            "price_stream_enabled": bool(runtime.enable_live_price_stream),
+        },
+    }
+
+
+@app.post("/api/desktop/shutdown")
+async def request_desktop_shutdown() -> dict[str, Any]:
+    if not desktop_token or os.getenv("NEWXAU_DESKTOP_ALLOW_SHUTDOWN") != "1":
+        return JSONResponse(
+            status_code=403,
+            content={"detail": "Desktop-managed shutdown is not enabled."},
+        )
+    request_shutdown()
+    return {"status": "SHUTTING_DOWN"}
+
+
 @app.websocket("/ws/events")
 async def events_socket(websocket: WebSocket) -> None:
+    if desktop_token and not _desktop_token_matches(websocket.query_params.get("token")):
+        await websocket.close(code=4401, reason="A valid NEWXAU desktop token is required.")
+        return
     await websocket.accept()
     queue = await event_bus.subscribe()
     try:
@@ -1706,7 +1846,12 @@ def get_report_file(path: str):
     requested = Path(path)
     if not requested.is_absolute():
         requested = Path.cwd() / requested
-    reports_root = (Path.cwd() / runtime.reports_dir).resolve()
+    configured_reports = Path(runtime.reports_dir)
+    reports_root = (
+        configured_reports.resolve()
+        if configured_reports.is_absolute()
+        else (resource_root() / configured_reports).resolve()
+    )
     resolved = requested.resolve()
     if reports_root not in resolved.parents and resolved != reports_root:
         return {"status": "ERROR", "message": "Report path is outside the configured reports directory."}
@@ -1717,11 +1862,11 @@ def get_report_file(path: str):
 
 @app.get("/")
 def dashboard() -> FileResponse:
-    return FileResponse("src/gold_signal_system/dashboard_static/index.html")
+    return FileResponse(resource_root() / "src/gold_signal_system/dashboard_static/index.html")
 
 @app.get("/news")
 def news_dashboard() -> FileResponse:
-    return FileResponse("src/gold_signal_system/dashboard_static/news.html")
+    return FileResponse(resource_root() / "src/gold_signal_system/dashboard_static/news.html")
 
 # --- News Intelligence Endpoints ---
 

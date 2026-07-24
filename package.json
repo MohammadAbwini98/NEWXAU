@@ -1,0 +1,44 @@
+{
+  "name": "newxau-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NEWXAU trading intelligence desktop application",
+  "main": "out/main/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "npm run typecheck && electron-vite build",
+    "preview": "electron-vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "runtime:build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-desktop-runtime.ps1",
+    "runtime:manifests": "node scripts/generate-desktop-release-manifests.mjs",
+    "runtime:verify": "node scripts/verify-desktop-runtime.mjs",
+    "package:dir": "npm run runtime:verify && npm run build && electron-builder --dir",
+    "package:win": "npm run runtime:verify && npm run build && electron-builder --win nsis portable"
+  },
+  "dependencies": {
+    "lucide-react": "^0.468.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.7.0",
+    "electron": "39.8.5",
+    "electron-builder": "26.15.3",
+    "electron-vite": "3.1.0",
+    "jsdom": "^25.0.1",
+    "typescript": "^5.7.2",
+    "vite": "6.4.3",
+    "vitest": "3.2.6"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

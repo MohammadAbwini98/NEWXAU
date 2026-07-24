@@ -29,7 +29,7 @@ class RuntimeConfigDefaultsTests(unittest.TestCase):
             runtime = RuntimeConfig(data_provider="synthetic", postgres_dsn=None)
 
         self.assertEqual(runtime.instrument, "XAUUSD")
-        self.assertEqual(runtime.capitalcom_epic, "XAUUSD")
+        self.assertEqual(runtime.capitalcom_epic, "GOLD")
 
     def test_external_capital_env_file_is_explicit_only(self) -> None:
         self.assertFalse(hasattr(config_module, "DEFAULT_CAPITAL_ENV_FILE"))

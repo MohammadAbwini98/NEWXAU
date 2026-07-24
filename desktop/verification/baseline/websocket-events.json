@@ -1,0 +1,28 @@
+{
+  "websockets": [
+    {
+      "path": "/ws/events",
+      "handler": "events_socket",
+      "line": 1688
+    }
+  ],
+  "events": [
+    "backtest.auto_market_close",
+    "execution.updated",
+    "price.stream.status",
+    "price.tick",
+    "risk.blocked",
+    "risk.passed",
+    "signal.updated",
+    "system.error",
+    "workers.status"
+  ],
+  "envelope": {
+    "required_fields": [
+      "event",
+      "occurred_at",
+      "data"
+    ],
+    "heartbeat_event": "heartbeat"
+  }
+}

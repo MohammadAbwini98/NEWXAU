@@ -31,9 +31,58 @@ graph TD;
 *   **Event Flow**: `event_bus.py` provides pub/sub. Background runner emits cycle updates to the bus, which the websocket pushes to clients.
 
 ## Frontend Structure
-*   Vanilla JS / HTML / CSS located in `src/gold_signal_system/dashboard_static/`.
-*   Connects to `/api` endpoints for historical REST queries.
-*   Connects to `/ws/events` for live streaming updates.
+* Legacy: vanilla JS / HTML / CSS in
+  `src/gold_signal_system/dashboard_static/`.
+* Desktop: Electron main/preload in `app/main/`, shared IPC contracts in
+  `app/shared/`, and React/TypeScript renderer in `app/renderer/`.
+* Electron main owns the Python process, random loopback port, per-launch token,
+  local settings, encrypted secrets, and REST proxy.
+* Packaged Python resolution is fail-closed. Development resolution checks the
+  staged private runtime, then `.venv`, and permits system Python only through
+  an explicit environment opt-in.
+* Electron supplies encrypted or explicitly inherited backend secrets and
+  blocks implicit repository `.env` credentials by setting absent sensitive
+  keys to empty values. Both `POSTGRES_DSN` and `POSTGRES_SCHEMA` are passed
+  through this protected configuration path. The legacy Python entry points
+  retain their existing `.env` behavior.
+* `app/shared/redaction.ts` is the shared diagnostic boundary for persisted
+  backend logs, backend/UI error messages, failed REST diagnostics, and future
+  support-bundle payloads.
+* The renderer has no Node integration. It uses a narrow `contextBridge` API,
+  typed REST client, and authenticated `/ws/events` client with bounded
+  reconnect and targeted refreshes.
+* Existing endpoint paths, payload shapes, and WebSocket event names remain
+  backend-authoritative.
+
+## Desktop Process Flow
+
+```mermaid
+graph LR;
+    ElectronMain-->PreloadBridge;
+    PreloadBridge-->ReactRenderer;
+    ElectronMain-- spawn/token/env -->FastAPI;
+    ReactRenderer-- typed IPC REST -->ElectronMain;
+    ElectronMain-- bearer REST -->FastAPI;
+    FastAPI-- token WebSocket -->ReactRenderer;
+    FastAPI-->TradingPipeline;
+    FastAPI-->Storage;
+```
+
+* `scripts/run_backend.py` invokes the idempotent database initializer before
+  importing/serving the API, binds only to `127.0.0.1`, and prints a JSON
+  readiness record after Uvicorn is listening. Database initialization errors
+  emit a detail-free warning and preserve the backend's in-memory fallback.
+* Runtime writes resolve under `%LOCALAPPDATA%\NEWXAU\runtime`; packaged
+  resources resolve independently of the current working directory.
+* Desktop shutdown first requests bounded graceful backend shutdown and then
+  terminates the owned child only as a fallback. Expected exits are tracked by
+  child identity so a delayed old-child exit cannot clear or auto-restart a
+  newly spawned backend.
+* Release verification compares complete SHA-256 runtime/model manifests, then
+  executes native-library and backend-import smoke tests from an unrelated
+  temporary package layout.
+* Runtime imports are warmed before manifest generation. The owned backend sets
+  `PYTHONDONTWRITEBYTECODE=1`, preserving the packaged inventory after launch.
 
 ## Database / Data Layer
 *   **Engine**: PostgreSQL.
@@ -42,6 +91,10 @@ graph TD;
 *   **Fallback**: An in-memory dict structure mimics the DB if PostgreSQL fails to connect.
 *   **Settings**: Runtime dashboard settings are persisted through `system_settings`.
 *   **Execution Control Audit**: Control Unit decisions are stored in `execution_control_decisions`.
+*   **Desktop startup**: The headless launcher runs `scripts/init_db.py` before
+    Uvicorn. Repository-local PostgreSQL auto-start is available only when its
+    `LOCAL_POSTGRES_*` data/bin settings resolve on that machine; packaged
+    resources do not contain a PostgreSQL server or data cluster.
 
 ## Execution Control Flow
 1. Dashboard writes Control Unit config through `/api/execution/control`.

@@ -1,11 +1,12 @@
 # Features
 
-Last updated: 2026-07-21
+Last updated: 2026-07-24
 
 ## Existing Features
 
 - Market data ingestion and indicator processing.
-- XAUUSD-first runtime/dashboard defaults with explicit environment override support.
+- XAUUSD-first runtime/dashboard behavior with the Capital.com `GOLD` market
+  epic by default and explicit environment override support.
 - Model ensemble signal generation.
 - Strategy brain and trade-plan generation.
 - Risk checks before execution.
@@ -24,6 +25,13 @@ Last updated: 2026-07-21
 - Default-off fail-closed data-quality gate that skips model adapters and produces auditable deterministic HOLD abstentions.
 - Per-cycle stage timing in API responses and persisted signal snapshot context.
 - Cost-aware legacy backtest results with gross/net R, blocked-signal counts, and explicit cost assumptions.
+- Electron desktop startup that selects synthetic data for an unconfigured
+  clean install, selects Capital.com when its complete encrypted credential
+  set or explicit environment file is available, and preserves explicit
+  provider overrides.
+- Electron price cards refresh on `price.tick`, show live Capital.com quotes
+  when available, and use an explicitly labeled signal-price reference for
+  non-live providers.
 
 ## Execution Orders Payload Export
 

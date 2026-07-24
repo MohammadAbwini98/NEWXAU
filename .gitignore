@@ -8,6 +8,15 @@
 *.py[cod]
 .claude/*.lock
 
+# Electron/React generated output.
+node_modules/
+out/
+release/
+coverage/
+desktop/runtime/python/
+desktop/runtime/model-manifest.json
+desktop/runtime/model-manifest.sha256
+
 # Runtime state, local databases, and provider sessions.
 runtime/
 storage/capital_com_session_state.json

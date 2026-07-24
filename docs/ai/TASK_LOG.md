@@ -586,3 +586,260 @@ The API correctly persisted checkbox values; the dashboard could overwrite a new
 ### Remaining Notes
 
 Manual browser verification is still recommended after restarting the API: toggle several session, direction, and policy checkboxes quickly and confirm each stays selected after the `Saved` message and a manual Refresh. No live broker request is needed for this check.
+
+## 2026-07-23 - AWKIT-Inspired Electron Desktop Migration
+
+### Agent / Tool
+
+Codex
+
+### Task
+
+Followed the staged NEWXAU desktop migration plan while retaining the FastAPI
+backend, legacy dashboard, and all execution safeguards.
+
+### Files Created / Updated
+
+- `app/main/`, `app/renderer/`, `app/shared/`
+- `desktop/openapi/`, `desktop/verification/`, `desktop/runtime/`
+- `.github/workflows/desktop-ci.yml`
+- `package.json`, `package-lock.json`, Electron/Vite/TypeScript/Vitest configs
+- `scripts/run_backend.py`, `scripts/export_desktop_baseline.py`
+- `src/gold_signal_system/api.py`, `config.py`, `desktop_runtime.py`
+- `tests/test_desktop_runtime.py`, `tests/test_desktop_contract_baseline.py`
+- `docs/desktop/` and relevant `docs/ai/` memory files
+
+### Summary
+
+Created the pre-migration tag and migration branch, froze endpoint/event/env/hash
+baselines, added a secure Electron-owned Python lifecycle, token-protected
+loopback REST/WebSocket access, runtime-path abstraction, Windows-encrypted
+secret storage, typed clients, reconnecting targeted events, and the complete
+desktop route shell. Ported live dashboard, signal, execution, Control Unit,
+history, analysis, research, health, and settings surfaces. The new Control Unit
+uses explicit save and rejects stale refresh adoption while edits are dirty.
+The legacy dashboard remains available. Installer output is intentionally gated
+until the private Python runtime and signing inputs exist.
+
+### Checks Run
+
+- 44 focused Python tests passed plus 13 market-session subtests.
+- 6 Vitest tests passed.
+- TypeScript strict typecheck and Electron production build passed.
+- `npm audit` reported zero vulnerabilities.
+- Headless Electron production renderer, authenticated backend lifecycle,
+  WebSocket connection, graceful shutdown, and legacy/desktop screenshot
+  captures passed.
+- GitHub Actions initially failed before collection because `pytest` is not a
+  runtime dependency in `requirements.txt`; desktop CI now installs the test
+  runner explicitly. The clean runner also exposed the production
+  `DATA_PROVIDER=capitalcom` default, so the safety job now explicitly uses the
+  credential-free synthetic provider.
+- A combined legacy dashboard-startup run reproduced the known local
+  `torch`/`safetensors` native access violation; it was isolated from the safe
+  gate and made no broker request.
+
+### Remaining Notes
+
+Stage the approved private Windows Python runtime at
+`desktop/runtime/python/`, validate with `npm run runtime:verify`, then build,
+sign, and test NSIS/portable artifacts on a clean Windows account. Do not remove
+the legacy dashboard until explicit parity acceptance.
+## 2026-07-24 - Restack Desktop PR And Harden Release Packaging
+
+### Objective
+
+Merge the reviewed reliability base, retarget the desktop migration to `main`,
+retain the legacy dashboard until parity acceptance, and close the packaged
+runtime and diagnostics security gaps before release packaging.
+
+### Outcome
+
+- Safety-reviewed PR #1 and merged it into `main` after 44 focused tests, 13
+  market-session subtests, four structural dashboard tests, JavaScript parse,
+  compile, and memory validation passed. Execution eligibility was not changed
+  and no live broker request occurred.
+- Retargeted draft PR #2 to `main`, merged updated `main` into its feature
+  branch without content drift, and confirmed its diff contains only the
+  desktop migration.
+- Packaged Python resolution now fails closed. Development checks the staged
+  private runtime, then `.venv`, and requires explicit opt-in for system Python.
+- Added shared redaction for backend logs, state/error messages, failed REST
+  diagnostics, renderer errors, and future support payloads.
+- Added pinned CPython 3.12.10 x64 runtime build automation, exact package
+  policy, complete SHA-256 runtime/model manifests, forbidden-file checks,
+  relocated backend imports, native DLL checks, Torch/LightGBM/ONNX inference,
+  PostgreSQL driver loading, and execution-safety assertions.
+- Built the ignored private runtime locally from the official PSF archive after
+  validating its published SHA-256. The final runtime contains 24,578 hashed
+  files, including 1,959 controlled bytecode files; two consecutive
+  `runtime:verify` runs passed without changing that inventory.
+- Prevented Electron development startup from silently importing repository
+  `.env` credentials. Encrypted desktop secrets and explicit process
+  environment values remain supported; absent sensitive keys are isolated.
+- Separated the owned authenticated shutdown request from the renderer mutation
+  allowlist. The renderer remains unable to call shutdown, while lifecycle
+  smoke confirms the Python child exits after graceful shutdown.
+- Produced unsigned unpacked, NSIS, and portable Windows test packages with
+  Node 22.12.0. Development and unpacked-package lifecycle smoke reached
+  renderer/backend ready and shut down with empty stderr.
+  - Installer SHA-256:
+    `EDF037D6E52181B947A683453B3737AFE7B6E9CB5F875600B4C02681DDB849CB`
+  - Portable SHA-256:
+    `032B774DC38B1AA877952153966A9ADCE805093F4A6177EFDA7C9A0F149DD0CC`
+  - All three checked executables reported `NotSigned`; packaging stderr was
+    empty.
+- Reclassified desktop parity as `Complete`, `Restricted by design`,
+  `Legacy fallback`, or `Not implemented`; direct order submission is
+  deliberately restricted and the legacy dashboard remains required.
+
+### Remaining gates
+
+- Validate install, launch, restart, shutdown, uninstall, and file handling on a
+  clean non-admin Windows machine.
+- Configure signing, verify signed hashes/Authenticode, complete parity
+  acceptance, and only then mark PR #2 ready.
+
+## 2026-07-24 - Fix Clean Desktop Backend Startup
+
+### Problem
+
+The unpacked desktop showed `Backend exited unexpectedly (code 1)` and could
+not load data. The redacted packaged traceback showed that the Python runtime
+defaulted to `DATA_PROVIDER=capitalcom` while the clean desktop secret store
+contained no Capital.com credentials.
+
+### Changes
+
+- Added desktop provider resolution before spawning Python.
+- Preserved explicit `DATA_PROVIDER` values.
+- Selected Capital.com when an explicit `CAPITAL_ENV_FILE` or a complete API
+  key, identifier, and password set is available.
+- Selected the synthetic provider only when the desktop is otherwise
+  unconfigured, keeping execution OFF and demo-only.
+- Added regression coverage for clean, partial-credential, complete-credential,
+  explicit-env-file, and explicit-provider cases.
+
+### Verification
+
+- 17 Vitest tests passed.
+- TypeScript typecheck and production Electron build passed.
+- 44 focused Python tests and 13 market-session subtests passed with synthetic
+  data and broker execution disabled.
+- `npm audit` reported zero vulnerabilities.
+- Private runtime verification passed.
+- Node 22.12 produced fresh unpacked, NSIS installer, and portable
+  applications.
+- Packaged headless smoke reported `renderer_loaded: true`,
+  `backend_phase: ready`, exit code 0, and empty stderr.
+- The corrected portable executable completed its first-run extraction and
+  headless lifecycle with exit code 0, backend ready, and no backend stderr.
+- Visual capture showed the Overview route connected with populated
+  decision/model/history data.
+- Installer SHA-256:
+  `120137E8F5C780CE72EFC4F4643EDFF8CED84F5434FF725A8ABD60414544BE0C`
+- Portable SHA-256:
+  `C00766567488251D6570080A0B184FD0BF85095A54E8A5EF9B1EA6476CFC9D3C`
+
+### Operational Note
+
+Live Capital.com prices still require complete encrypted credentials in
+Desktop Settings or an explicitly configured provider environment. The
+credential-free fallback is synthetic and must not be represented as live
+market data.
+
+## 2026-07-24 - Restore Desktop XAUUSD Price Data
+
+### Problem
+
+The connected desktop showed a dash for XAUUSD. Capital.com candle requests
+used `/prices/XAUUSD`, which returned HTTP 404, and the renderer listened for
+`price.updated` even though the backend publishes `price.tick`. A configured
+but unreachable PostgreSQL DSN could also delay backend readiness for several
+minutes.
+
+### Changes
+
+- Kept the internal instrument as `XAUUSD` and corrected the default
+  Capital.com epic to `GOLD`.
+- Updated renderer price refreshes to consume `price.tick`.
+- Added a safe display resolver that prefers live price/bid-ask data and, only
+  for non-live providers, shows the signal price with an explicit
+  reference-only label.
+- Disabled the Capital.com websocket by default for synthetic/CSV providers.
+- Added a `REFERENCE_ONLY` price response for non-live providers without
+  leaking a synthetic reference into the execution price path.
+- Bounded PostgreSQL startup connections for primary storage and News
+  Intelligence, preserving in-memory fallback.
+- Corrected a Windows path-separator assertion in the dashboard entrypoint
+  test.
+
+### Verification
+
+- 53 focused Python execution, Control Unit, stream, configuration, startup,
+  and dashboard tests passed.
+- 21 Electron tests passed before the broker-epic correction; targeted price,
+  event, and backend-manager tests passed after the renderer changes.
+- TypeScript typecheck and production Electron build passed.
+- Node 22.12 produced a fresh unpacked package.
+- The rebuilt app reached backend ready with the existing encrypted desktop
+  profile and visually displayed a numeric XAUUSD quote (`4947.98`) while no
+  current signal existed, confirming the value came from the live broker
+  stream rather than the signal-reference fallback.
+- Execution eligibility was not broadened. Execution and auto-execution remain
+  disabled by default, demo-only remains enabled, and no broker order request
+  occurred.
+
+## 2026-07-24 - Restore Signal History And Dashboard Rendering
+
+### Problem
+
+The Electron overview could connect while showing no signal/history, and the
+legacy dashboard stopped rendering most data. The configured project-local
+PostgreSQL cluster was not running, so the desktop fell back to memory. The
+legacy SMC renderer also assumed obsolete flat sweep/FVG fields and threw a
+JavaScript exception during every refresh.
+
+### Changes
+
+- Updated the legacy SMC/session renderer for the current nested sweep level,
+  boolean FVG direction, `active_htf_fvgs`, `dol`, and `session` payload.
+- Made first-cycle provider failures degrade to explicit dashboard
+  `data_status` with retry backoff while all read endpoints remain available.
+- Added current and entry price to the desktop summary contract and displayed
+  an actionable data-unavailable alert in both dashboards.
+- Aligned `scripts/run_backend.py` with `scripts/run_api.py` by running the
+  idempotent database initializer before Uvicorn. Initialization failure emits
+  only an exception type and preserves in-memory fallback.
+- Added encrypted `POSTGRES_SCHEMA` desktop configuration so packaged launches
+  use the historical `newxau` schema instead of creating/reading empty public
+  tables.
+- Fixed a restart race where a slow old backend exit could be mistaken for a
+  failure after the replacement process had started, causing an extra backend
+  process.
+- Started the existing project-local PostgreSQL cluster through
+  `scripts/init_db.py`; no destructive SQL was run.
+
+### Verification
+
+- PostgreSQL storage became reachable and exposed 5,710 persisted
+  recommendations; the latest stored signal loaded through the dashboard API.
+- The rebuilt unpacked desktop visually showed `POSTGRESQL`, 5,710 tracked
+  signals, the latest BUY recommendation, 70.1% confidence, model allocation,
+  and the persisted reference price. A normal final launch left exactly one
+  owned Python backend and produced no new backend stderr.
+- 15 desktop-runner/dashboard tests and 38 execution, Control Unit, and stream
+  safety tests passed.
+- 22 Vitest tests, TypeScript typecheck, and the Electron production build
+  passed.
+- Three focused pipeline tests passed. The full `tests/test_pipeline.py` run
+  was stopped after exceeding five minutes, matching the existing native/slow
+  suite warning.
+- Execution and auto-execution remained disabled and demo-only remained
+  enabled. No broker order request was made.
+
+### Remaining operational constraint
+
+Packaged applications do not ship a PostgreSQL server or the development data
+cluster. They need a reachable PostgreSQL service/cluster after reboot or will
+correctly report `IN_MEMORY`.

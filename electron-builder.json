@@ -1,0 +1,72 @@
+{
+  "appId": "com.newxau.desktop",
+  "productName": "NEWXAU",
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "out/**/*",
+    "package.json"
+  ],
+  "extraResources": [
+    {
+      "from": "desktop/runtime/python",
+      "to": "python",
+      "filter": ["**/*"]
+    },
+    {
+      "from": "src",
+      "to": "backend/src",
+      "filter": ["**/*"]
+    },
+    {
+      "from": "scripts",
+      "to": "backend/scripts",
+      "filter": ["**/*"]
+    },
+    {
+      "from": "models",
+      "to": "backend/models",
+      "filter": [
+        "**/*",
+        "!**/.cache/**",
+        "!**/__pycache__/**",
+        "!**/*.pyc",
+        "!_artifacts_5m_backup/**"
+      ]
+    },
+    {
+      "from": "desktop/runtime/model-manifest.json",
+      "to": "backend/models/manifest.json"
+    },
+    {
+      "from": "db",
+      "to": "backend/db",
+      "filter": ["**/*"]
+    }
+  ],
+  "asar": true,
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      },
+      {
+        "target": "portable",
+        "arch": ["x64"]
+      }
+    ]
+  },
+  "nsis": {
+    "artifactName": "${productName}-${version}-${arch}-installer.${ext}",
+    "oneClick": false,
+    "perMachine": false,
+    "allowElevation": false,
+    "allowToChangeInstallationDirectory": true,
+    "deleteAppDataOnUninstall": false
+  },
+  "portable": {
+    "artifactName": "${productName}-${version}-${arch}-portable.${ext}"
+  }
+}

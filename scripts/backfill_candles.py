@@ -12,7 +12,7 @@ Environment (read from .env automatically via gold_signal_system.config):
     CAPITALCOM_API_KEY / CAPITAL_API_KEY
     CAPITALCOM_IDENTIFIER / CAPITAL_IDENTIFIER
     CAPITALCOM_PASSWORD / CAPITAL_PASSWORD
-    CAPITALCOM_EPIC      (default XAUUSD)
+    CAPITALCOM_EPIC      (default GOLD)
     POSTGRES_DSN, POSTGRES_SCHEMA
 """
 

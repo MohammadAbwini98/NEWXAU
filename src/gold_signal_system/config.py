@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict
 
+from .desktop_runtime import resolve_resource_path, resolve_runtime_path
+
 
 CAPITAL_DEMO_BASE_URL = "https://demo-api-capital.backend-capital.com/api/v1"
 CAPITAL_LIVE_BASE_URL = "https://api-capital.backend-capital.com/api/v1"
@@ -62,6 +64,20 @@ def _capital_api_base_default() -> str:
     return CAPITAL_LIVE_BASE_URL if env_name == "live" else CAPITAL_DEMO_BASE_URL
 
 
+def _resource_path_env(name: str, default: str) -> str:
+    value = os.getenv(name, default)
+    if os.getenv("NEWXAU_RESOURCE_ROOT"):
+        return str(resolve_resource_path(value))
+    return value
+
+
+def _runtime_path_env(name: str, default: str) -> str:
+    value = os.getenv(name, default)
+    if os.getenv("NEWXAU_RUNTIME_ROOT"):
+        return str(resolve_runtime_path(value))
+    return value
+
+
 _load_runtime_env_files()
 
 
@@ -100,10 +116,19 @@ class RuntimeConfig:
     prediction_horizon_candles: int = field(default_factory=lambda: int(os.getenv("PREDICTION_HORIZON_CANDLES", "6")))
     min_model_confidence: float = 0.55
     data_provider: str = field(default_factory=lambda: os.getenv("DATA_PROVIDER", "capitalcom"))
-    candle_csv_path: str | None = field(default_factory=lambda: os.getenv("CANDLE_CSV_PATH"))
-    model_artifacts_dir: str = field(default_factory=lambda: os.getenv("MODEL_ARTIFACTS_DIR", "models"))
+    candle_csv_path: str | None = field(
+        default_factory=lambda: (
+            _resource_path_env("CANDLE_CSV_PATH", os.getenv("CANDLE_CSV_PATH", ""))
+            if os.getenv("CANDLE_CSV_PATH")
+            else None
+        )
+    )
+    model_artifacts_dir: str = field(default_factory=lambda: _resource_path_env("MODEL_ARTIFACTS_DIR", "models"))
     postgres_dsn: str | None = field(default_factory=lambda: os.getenv("POSTGRES_DSN"))
     postgres_schema: str | None = field(default_factory=lambda: _env_first("POSTGRES_SCHEMA", "TRADING_DATABASE_SCHEMA"))
+    postgres_connect_timeout_seconds: int = field(
+        default_factory=lambda: max(int(os.getenv("POSTGRES_CONNECT_TIMEOUT_SECONDS", "5")), 1)
+    )
     live_cycle_interval_seconds: int = field(default_factory=lambda: int(os.getenv("LIVE_CYCLE_INTERVAL_SECONDS", "900")))
     live_candle_lookback: int = field(default_factory=lambda: int(os.getenv("LIVE_CANDLE_LOOKBACK", "900")))
     live_cycle_retry_attempts: int = field(default_factory=lambda: int(os.getenv("LIVE_CYCLE_RETRY_ATTEMPTS", "3")))
@@ -119,7 +144,7 @@ class RuntimeConfig:
     data_quality_freshness_multiplier: float = field(
         default_factory=lambda: float(os.getenv("DATA_QUALITY_FRESHNESS_MULTIPLIER", "2.5"))
     )
-    reports_dir: str = field(default_factory=lambda: os.getenv("REPORTS_DIR", "reports"))
+    reports_dir: str = field(default_factory=lambda: _runtime_path_env("REPORTS_DIR", "reports"))
     strategy_version: str = field(default_factory=lambda: os.getenv("STRATEGY_VERSION", "strategy_v1"))
     threshold_profile_name: str = field(default_factory=lambda: os.getenv("THRESHOLD_PROFILE_NAME", "default"))
     minimum_final_confidence: float = field(default_factory=lambda: float(os.getenv("MINIMUM_FINAL_CONFIDENCE", "0.55")))
@@ -189,8 +214,8 @@ class RuntimeConfig:
     capitalcom_identifier: str | None = field(default_factory=lambda: _env_first("CAPITALCOM_IDENTIFIER", "CAPITAL_IDENTIFIER", "CAPITAL_EMAIL"))
     capitalcom_password: str | None = field(default_factory=lambda: _env_first("CAPITALCOM_PASSWORD", "CAPITAL_PASSWORD"))
     capitalcom_epic: str = field(
-        default_factory=lambda: _env_first("CAPITALCOM_EPIC", "CAPITAL_DEFAULT_EPIC", "TRADING_PROVIDER_SYMBOL", default="XAUUSD")
-        or "XAUUSD"
+        default_factory=lambda: _env_first("CAPITALCOM_EPIC", "CAPITAL_DEFAULT_EPIC", "TRADING_PROVIDER_SYMBOL", default="GOLD")
+        or "GOLD"
     )
     capitalcom_price_side: str = field(default_factory=lambda: _env_first("CAPITALCOM_PRICE_SIDE", "CAPITAL_DEFAULT_PRICE_SIDE", default="mid") or "mid")
     capitalcom_use_encrypted_password: bool = field(default_factory=lambda: _env_flag("CAPITAL_USE_ENCRYPTED_PASSWORD", False))
