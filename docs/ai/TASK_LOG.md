@@ -789,3 +789,57 @@ minutes.
 - Execution eligibility was not broadened. Execution and auto-execution remain
   disabled by default, demo-only remains enabled, and no broker order request
   occurred.
+
+## 2026-07-24 - Restore Signal History And Dashboard Rendering
+
+### Problem
+
+The Electron overview could connect while showing no signal/history, and the
+legacy dashboard stopped rendering most data. The configured project-local
+PostgreSQL cluster was not running, so the desktop fell back to memory. The
+legacy SMC renderer also assumed obsolete flat sweep/FVG fields and threw a
+JavaScript exception during every refresh.
+
+### Changes
+
+- Updated the legacy SMC/session renderer for the current nested sweep level,
+  boolean FVG direction, `active_htf_fvgs`, `dol`, and `session` payload.
+- Made first-cycle provider failures degrade to explicit dashboard
+  `data_status` with retry backoff while all read endpoints remain available.
+- Added current and entry price to the desktop summary contract and displayed
+  an actionable data-unavailable alert in both dashboards.
+- Aligned `scripts/run_backend.py` with `scripts/run_api.py` by running the
+  idempotent database initializer before Uvicorn. Initialization failure emits
+  only an exception type and preserves in-memory fallback.
+- Added encrypted `POSTGRES_SCHEMA` desktop configuration so packaged launches
+  use the historical `newxau` schema instead of creating/reading empty public
+  tables.
+- Fixed a restart race where a slow old backend exit could be mistaken for a
+  failure after the replacement process had started, causing an extra backend
+  process.
+- Started the existing project-local PostgreSQL cluster through
+  `scripts/init_db.py`; no destructive SQL was run.
+
+### Verification
+
+- PostgreSQL storage became reachable and exposed 5,710 persisted
+  recommendations; the latest stored signal loaded through the dashboard API.
+- The rebuilt unpacked desktop visually showed `POSTGRESQL`, 5,710 tracked
+  signals, the latest BUY recommendation, 70.1% confidence, model allocation,
+  and the persisted reference price. A normal final launch left exactly one
+  owned Python backend and produced no new backend stderr.
+- 15 desktop-runner/dashboard tests and 38 execution, Control Unit, and stream
+  safety tests passed.
+- 22 Vitest tests, TypeScript typecheck, and the Electron production build
+  passed.
+- Three focused pipeline tests passed. The full `tests/test_pipeline.py` run
+  was stopped after exceeding five minutes, matching the existing native/slow
+  suite warning.
+- Execution and auto-execution remained disabled and demo-only remained
+  enabled. No broker order request was made.
+
+### Remaining operational constraint
+
+Packaged applications do not ship a PostgreSQL server or the development data
+cluster. They need a reachable PostgreSQL service/cluster after reboot or will
+correctly report `IN_MEMORY`.

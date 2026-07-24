@@ -39,6 +39,7 @@ export function DashboardPage() {
   }, [lastEvent, summary.refresh, price.refresh, execution.refresh, market.refresh]);
 
   const currentSignal = summary.data?.current_signal;
+  const dataStatus = summary.data?.data_status;
   const displayPrice = resolveDisplayPrice(price.data, currentSignal);
   const executionSafe = execution.data?.enabled !== true;
   const marketState = String(market.data?.market_state ?? market.data?.status ?? "Unknown");
@@ -82,6 +83,13 @@ export function DashboardPage() {
           <div><span>Confidence</span><strong>{formatPercent(currentSignal?.confidence)}</strong><small>{currentSignal?.status ?? "NO SIGNAL"}</small></div>
         </div>
       </section>
+
+      {dataStatus?.status === "ERROR" ? (
+        <div className="inline-alert" role="alert">
+          <Clock3 size={16} />
+          <span>{dataStatus.message}</span>
+        </div>
+      ) : null}
 
       <section className="metric-grid">
         <MetricCard

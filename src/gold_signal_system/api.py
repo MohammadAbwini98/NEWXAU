@@ -8,6 +8,7 @@ import hmac
 import json
 import os
 from pathlib import Path
+from time import monotonic
 from typing import Any
 
 from dateutil import parser
@@ -74,6 +75,8 @@ background_cycle_status: dict[str, Any] = {
     "consecutive_errors": 0,
 }
 seed_lock = asyncio.Lock()
+seed_retry_after_monotonic = 0.0
+seed_last_error_at: str | None = None
 cycle_execution_lock = asyncio.Lock()
 broker_execution_lock = asyncio.Lock()
 
@@ -282,18 +285,36 @@ async def _publish_price_stream_status(status: str, data: dict[str, Any]) -> Non
 
 
 async def _seed_if_needed() -> None:
+    global seed_last_error_at, seed_retry_after_monotonic
+
     if system.storage.latest_recommendation() is not None:
+        return
+    if monotonic() < seed_retry_after_monotonic:
         return
 
     async with seed_lock:
         if system.storage.latest_recommendation() is not None:
             return
+        if monotonic() < seed_retry_after_monotonic:
+            return
 
-        cycle = await _run_cycle_with_retries(
-            source_timeframe="1m",
-            market_context=MarketContext(),
-            candles=None,
-        )
+        try:
+            cycle = await _run_cycle_with_retries(
+                source_timeframe="1m",
+                market_context=MarketContext(),
+                candles=None,
+            )
+        except Exception as exc:
+            seed_last_error_at = _now_iso()
+            seed_retry_after_monotonic = monotonic() + max(
+                float(runtime.live_cycle_retry_backoff_seconds),
+                5.0,
+            )
+            _record_background_cycle_error(exc, source="dashboard_seed")
+            return
+
+        seed_last_error_at = None
+        seed_retry_after_monotonic = 0.0
 
         payload = {
             "recommendation": cycle.recommendation.model_dump(mode="json"),
@@ -306,6 +327,32 @@ async def _seed_if_needed() -> None:
         if latest_id is not None:
             payload["recommendation"]["id"] = latest_id
         await _publish_cycle_events(payload)
+
+
+def _dashboard_data_status() -> dict[str, Any]:
+    if system.storage.latest_recommendation() is not None:
+        return {
+            "status": "READY",
+            "message": "Signal data is available.",
+            "last_error_at": None,
+            "retry_after_seconds": 0,
+        }
+    if seed_last_error_at is not None:
+        return {
+            "status": "ERROR",
+            "message": (
+                "Signal data is temporarily unavailable. Check System Health and market-data "
+                "provider settings; NEWXAU will retry automatically."
+            ),
+            "last_error_at": seed_last_error_at,
+            "retry_after_seconds": max(int(seed_retry_after_monotonic - monotonic()), 0),
+        }
+    return {
+        "status": "WAITING",
+        "message": "Waiting for the first signal cycle to complete.",
+        "last_error_at": None,
+        "retry_after_seconds": 0,
+    }
 
 
 async def _background_live_cycle_runner() -> None:
@@ -634,7 +681,9 @@ async def get_favicon():
 @app.get("/api/dashboard/summary")
 async def get_dashboard_summary() -> dict[str, Any]:
     await _seed_if_needed()
-    return system.dashboard_summary()
+    summary = system.dashboard_summary()
+    summary["data_status"] = _dashboard_data_status()
+    return summary
 
 
 @app.get("/api/dashboard/current-signal")

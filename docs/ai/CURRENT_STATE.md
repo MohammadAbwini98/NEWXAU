@@ -9,12 +9,18 @@ Last updated: 2026-07-24
 - FastAPI API/dashboard entry point exists via `scripts/run_api.py`.
 - A headless loopback entry exists via `scripts/run_backend.py`; it supports a
   dynamic port, machine-readable readiness, desktop token authentication, and
-  desktop-managed graceful shutdown.
+  desktop-managed graceful shutdown. Before Uvicorn imports the API, it runs
+  the same database initialization used by the legacy launcher; failure is
+  reported without exception details and still falls through to the existing
+  in-memory storage fallback.
 - The legacy dashboard remains in `src/gold_signal_system/dashboard_static/`.
 - The AWKIT-inspired Electron/React/TypeScript application lives under `app/`.
   It owns the Python child process, uses a narrow preload bridge, stores desktop
   settings under `%LOCALAPPDATA%\NEWXAU`, encrypts configured secrets with
   Electron `safeStorage`, and connects to the preserved REST/WebSocket contract.
+- The encrypted desktop database configuration includes both `POSTGRES_DSN`
+  and `POSTGRES_SCHEMA`, so packaged launches can select the same non-public
+  schema as the legacy dashboard.
 - Packaged desktop startup fails closed when the bundled Python runtime is
   absent. Backend logs and desktop diagnostics pass through centralized
   sensitive-data redaction.
@@ -30,6 +36,9 @@ Last updated: 2026-07-24
 - PostgreSQL startup attempts are bounded for both primary storage and News
   Intelligence. An unavailable configured database falls back to in-memory
   instead of indefinitely blocking desktop readiness.
+- Dashboard-triggered first-cycle failures now return an explicit
+  `data_status=ERROR` with bounded retry/backoff instead of turning every read
+  endpoint into a 500 response. The detailed failure remains in system health.
 - Capital.com execution integration exists and keeps demo/safety guard rails.
 - Capital.com execution forces broker account selection for `CAPITAL_EXECUTION_ACCOUNT_NAME` immediately before market order submission and validates the selected account.
 - Execution Orders can be listed, inspected, filtered by market session and requested date/time range, summarized with dynamic filtered statistics, and exported with full dashboard payload JSON.
@@ -46,6 +55,10 @@ Last updated: 2026-07-24
 - Electron refreshes prices on the backend's `price.tick` event. With a
   non-live provider it labels the latest signal price as a reference rather
   than presenting it as a live quote.
+- Both dashboards keep rendering when the current SMC payload contains nested
+  sweep levels, boolean FVG direction, `active_htf_fvgs`, `dol`, and `session`.
+  The desktop summary also exposes the latest recommendation current/entry
+  prices used by its reference-price resolver.
 - Capital.com candle polling invalidates expired REST session tokens on HTTP 401, authenticates again, and retries the candle request once so long-running background signal cycles can recover without an API restart.
 - `/api/system/health` reports background cycle worker state, including last start/success/error timestamps, last generated signal time/session, consecutive worker errors, and stale-worker detection.
 - Every signal cycle reports scored candle quality, freshness, integrity counts, spread/provider/aggregation status, blocking reasons, and stage latency. These fields are exposed by the cycle API and persisted inside signal snapshot risk-filter JSON.
@@ -55,6 +68,10 @@ Last updated: 2026-07-24
 ## Partially Implemented / Needs Care
 
 - Downloaded/trained model weights, dataset caches, local PostgreSQL/runtime state, `.env`, and `.venv` are intentionally excluded from Git; fresh clones must initialize the Kronos submodule and provision local artifacts separately.
+- Packaged applications do not bundle a PostgreSQL server or local database
+  cluster. A configured external/service database must already be reachable;
+  repository-local auto-start requires the development-only
+  `LOCAL_POSTGRES_*` paths.
 - Full-suite tests may be slow; Capital.com unit tests isolate account-name env values from local `.env`.
 - News collection/analyzer behavior depends on optional configuration and external services.
 - Control Unit audit statistics require `db/010_execution_control.sql` to be applied for PostgreSQL persistence; in-memory fallback still works.

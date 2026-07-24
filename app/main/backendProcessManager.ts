@@ -34,6 +34,7 @@ const DESKTOP_SECRET_ENV_NAMES = [
   "CAPITALCOM_PASSWORD",
   "CAPITAL_PASSWORD",
   "POSTGRES_DSN",
+  "POSTGRES_SCHEMA",
   "TELEGRAM_BOT_TOKEN",
   "TELEGRAM_CHAT_ID"
 ] as const;
@@ -127,8 +128,8 @@ export class BackendProcessManager extends EventEmitter {
   private child: ChildProcessWithoutNullStreams | null = null;
   private state: BackendState = { ...INITIAL_STATE };
   private token = "";
-  private stopping = false;
   private restartTimer: NodeJS.Timeout | null = null;
+  private readonly expectedExits = new WeakSet<ChildProcessWithoutNullStreams>();
 
   constructor(
     private readonly paths: AppPaths,
@@ -167,7 +168,6 @@ export class BackendProcessManager extends EventEmitter {
       });
       return this.getState();
     }
-    this.stopping = false;
     this.token = randomBytes(32).toString("base64url");
     const port = await reservePort();
     const secretEnvironment = await this.secrets.environment();
@@ -247,8 +247,10 @@ export class BackendProcessManager extends EventEmitter {
       });
     });
     child.once("exit", (code, signal) => {
+      const expected = this.expectedExits.has(child);
+      this.expectedExits.delete(child);
+      if (this.child !== child) return;
       this.child = null;
-      const expected = this.stopping;
       this.setState({
         phase: expected ? "stopped" : "failed",
         baseUrl: null,
@@ -334,9 +336,9 @@ export class BackendProcessManager extends EventEmitter {
       this.setState({ phase: "stopped", message: "Backend stopped." });
       return;
     }
-    this.stopping = true;
     this.setState({ phase: "stopping", message: "Stopping backend…" });
     const child = this.child;
+    this.expectedExits.add(child);
     try {
       if (this.state.baseUrl) {
         await Promise.race([
@@ -348,7 +350,7 @@ export class BackendProcessManager extends EventEmitter {
       child.kill();
     }
     await new Promise<void>((resolve) => {
-      if (!this.child) {
+      if (this.child !== child) {
         resolve();
         return;
       }

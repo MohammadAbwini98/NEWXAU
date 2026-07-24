@@ -42,8 +42,9 @@ graph TD;
   an explicit environment opt-in.
 * Electron supplies encrypted or explicitly inherited backend secrets and
   blocks implicit repository `.env` credentials by setting absent sensitive
-  keys to empty values. The legacy Python entry points retain their existing
-  `.env` behavior.
+  keys to empty values. Both `POSTGRES_DSN` and `POSTGRES_SCHEMA` are passed
+  through this protected configuration path. The legacy Python entry points
+  retain their existing `.env` behavior.
 * `app/shared/redaction.ts` is the shared diagnostic boundary for persisted
   backend logs, backend/UI error messages, failed REST diagnostics, and future
   support-bundle payloads.
@@ -67,12 +68,16 @@ graph LR;
     FastAPI-->Storage;
 ```
 
-* `scripts/run_backend.py` binds only to `127.0.0.1` and prints a JSON readiness
-  record after Uvicorn is listening.
+* `scripts/run_backend.py` invokes the idempotent database initializer before
+  importing/serving the API, binds only to `127.0.0.1`, and prints a JSON
+  readiness record after Uvicorn is listening. Database initialization errors
+  emit a detail-free warning and preserve the backend's in-memory fallback.
 * Runtime writes resolve under `%LOCALAPPDATA%\NEWXAU\runtime`; packaged
   resources resolve independently of the current working directory.
 * Desktop shutdown first requests bounded graceful backend shutdown and then
-  terminates the owned child only as a fallback.
+  terminates the owned child only as a fallback. Expected exits are tracked by
+  child identity so a delayed old-child exit cannot clear or auto-restart a
+  newly spawned backend.
 * Release verification compares complete SHA-256 runtime/model manifests, then
   executes native-library and backend-import smoke tests from an unrelated
   temporary package layout.
@@ -86,6 +91,10 @@ graph LR;
 *   **Fallback**: An in-memory dict structure mimics the DB if PostgreSQL fails to connect.
 *   **Settings**: Runtime dashboard settings are persisted through `system_settings`.
 *   **Execution Control Audit**: Control Unit decisions are stored in `execution_control_decisions`.
+*   **Desktop startup**: The headless launcher runs `scripts/init_db.py` before
+    Uvicorn. Repository-local PostgreSQL auto-start is available only when its
+    `LOCAL_POSTGRES_*` data/bin settings resolve on that machine; packaged
+    resources do not contain a PostgreSQL server or data cluster.
 
 ## Execution Control Flow
 1. Dashboard writes Control Unit config through `/api/execution/control`.

@@ -687,6 +687,8 @@ class GoldSignalSystem:
                 "signal": latest.signal.value,
                 "status": latest.status.value,
                 "confidence": latest.confidence,
+                "current_price": latest.current_price,
+                "entry_price": latest.entry_price,
             },
             "model_consensus": latest.model_consensus,
             "risk_quality": latest.risk_status,

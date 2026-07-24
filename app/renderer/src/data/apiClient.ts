@@ -29,6 +29,12 @@ export interface DashboardSummary {
     pnl: number;
     signals: number;
   };
+  data_status?: {
+    status: "READY" | "WAITING" | "ERROR";
+    message: string;
+    last_error_at?: string | null;
+    retry_after_seconds?: number;
+  };
 }
 
 export interface PriceSnapshot {

@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import sys
 import unittest
+from unittest.mock import AsyncMock, patch
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SRC = os.path.join(ROOT, "src")
@@ -46,6 +47,8 @@ class DashboardStartupTests(unittest.IsolatedAsyncioTestCase):
             "last_session": None,
             "consecutive_errors": 0,
         }
+        api.seed_retry_after_monotonic = 0.0
+        api.seed_last_error_at = None
 
     def tearDown(self) -> None:
         if hasattr(api.system.storage, "close"):
@@ -96,6 +99,17 @@ class DashboardStartupTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("Active now", html)
         self.assertIn("Asia/Amman", html)
 
+    def test_dashboard_smc_renderer_accepts_pipeline_payload_shape(self) -> None:
+        dashboard_path = os.path.join(ROOT, "src", "gold_signal_system", "dashboard_static", "index.html")
+        with open(dashboard_path, encoding="utf-8") as handle:
+            html = handle.read()
+
+        self.assertNotIn("s.price.toFixed", html)
+        self.assertIn("smc.active_htf_fvgs || smc.active_fvgs", html)
+        self.assertIn("s?.price ?? level.price", html)
+        self.assertIn("smc.draw_on_liquidity ?? smc.dol", html)
+        self.assertIn("indicators?.session_name || indicators?.session", html)
+
     def test_control_unit_checkbox_saves_reject_stale_refreshes(self) -> None:
         dashboard_path = os.path.join(ROOT, "src", "gold_signal_system", "dashboard_static", "index.html")
         with open(dashboard_path, encoding="utf-8") as handle:
@@ -126,10 +140,32 @@ class DashboardStartupTests(unittest.IsolatedAsyncioTestCase):
         latest = api.system.storage.latest_recommendation()
         self.assertIsNotNone(latest)
         self.assertIsNotNone(summary["current_signal"])
+        self.assertEqual(summary["data_status"]["status"], "READY")
+        self.assertEqual(summary["current_signal"]["current_price"], latest.current_price)
+        self.assertEqual(summary["current_signal"]["entry_price"], latest.entry_price)
         self.assertGreaterEqual(len(api.system.storage.latest_model_votes()), 6)
         self.assertIsNotNone(api.system.storage.latest_indicator_snapshot())
         self.assertGreaterEqual(len(api.system.storage.strategy_decisions), 1)
         self.assertGreaterEqual(len(api.system.storage.trade_recommendations), 1)
+
+    async def test_seed_failure_keeps_read_apis_available_and_backs_off(self) -> None:
+        run_cycle = AsyncMock(side_effect=RuntimeError("provider unavailable in test"))
+        with patch.object(api, "_run_cycle_with_retries", run_cycle):
+            summary = await api.get_dashboard_summary()
+            latest = await api.get_latest_signal()
+            indicators = await api.get_latest_indicators()
+            risk = await api.get_risk_status()
+
+        self.assertIsNone(summary["current_signal"])
+        self.assertEqual(summary["data_status"]["status"], "ERROR")
+        self.assertIn("retry automatically", summary["data_status"]["message"])
+        self.assertNotIn("provider unavailable in test", summary["data_status"]["message"])
+        self.assertEqual(latest, {})
+        self.assertEqual(indicators, {})
+        self.assertEqual(risk["risk_status"], "UNKNOWN")
+        self.assertEqual(run_cycle.await_count, 1)
+        self.assertEqual(api.background_cycle_status["status"], "ERROR")
+        self.assertEqual(api.background_cycle_status["consecutive_errors"], 1)
 
     async def test_dashboard_api_exposes_model_votes_indicators_and_risk(self) -> None:
         await api.get_dashboard_summary()

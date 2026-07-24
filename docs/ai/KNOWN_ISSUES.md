@@ -11,9 +11,19 @@ Last updated: 2026-07-24
   attempts during startup (primary storage and News Intelligence) before both
   fall back to memory. The default bound is five seconds per client and can be
   changed with `POSTGRES_CONNECT_TIMEOUT_SECONDS`.
+- `scripts/run_backend.py` now invokes database initialization, so development
+  runs can auto-start the configured repository-local cluster. Portable and
+  installed packages still do not ship PostgreSQL binaries/data; after a
+  reboot they require a reachable PostgreSQL service or an independently
+  started external/local cluster. Otherwise history is unavailable for that
+  session and storage is explicitly reported as `IN_MEMORY`.
 - PostgreSQL Control Unit decision history requires `db/010_execution_control.sql`; run `python scripts/init_db.py` after deploying this change.
 - Capital.com streaming can still reconnect when broker account/session changes are made, because the provider documents that streaming can fall off after `PUT /session`. The stream worker now backs off and reconnects, but long-running demo/live sessions should still be watched in the dashboard.
 - Live price ticks and signal candle ingestion are separate paths. Capital.com websocket ticks may stay fresh while the background signal cycle stops refreshing the in-process candle store. `/api/system/health` exposes `background_cycle`; investigate if it becomes `STALE`, `ERROR`, or `STOPPED`, or if `last_success_at` stops advancing. The REST candle provider now recovers from one expired-session 401, but other repeated failures still require operator attention.
+- Dashboard first-load seeding backs off after a provider failure and keeps
+  read APIs available. The visible error is intentionally generic; inspect the
+  redacted backend log and `/api/system/health.background_cycle` for the
+  operational cause.
 - With `ENABLE_DATA_QUALITY_GATE=1`, fewer than 20 valid candles still fail at
   indicator snapshot construction instead of returning a deterministic HOLD.
   The gate remains disabled by default and the failure does not reach broker

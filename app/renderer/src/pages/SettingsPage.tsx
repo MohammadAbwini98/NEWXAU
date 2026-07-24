@@ -9,6 +9,7 @@ const secretLabels: Record<string, string> = {
   CAPITALCOM_IDENTIFIER: "Capital.com identifier",
   CAPITALCOM_PASSWORD: "Capital.com password",
   POSTGRES_DSN: "PostgreSQL DSN",
+  POSTGRES_SCHEMA: "PostgreSQL schema",
   TELEGRAM_BOT_TOKEN: "Telegram bot token",
   TELEGRAM_CHAT_ID: "Telegram chat ID"
 };

@@ -18,6 +18,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from gold_signal_system.desktop_runtime import reset_shutdown_request, wait_for_shutdown_request
+from scripts.init_db import initialize_database
 
 
 def parse_args() -> argparse.Namespace:
@@ -26,6 +27,35 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--port", type=int, default=int(os.getenv("NEWXAU_BACKEND_PORT", "0")))
     parser.add_argument("--log-level", default=os.getenv("NEWXAU_BACKEND_LOG_LEVEL", "warning"))
     return parser.parse_args()
+
+
+def initialize_desktop_database() -> None:
+    try:
+        result = initialize_database()
+    except Exception as exc:
+        print(
+            json.dumps(
+                {
+                    "event": "database.warning",
+                    "status": "ERROR",
+                    "error_type": type(exc).__name__,
+                    "message": "Database startup failed; the backend will use its configured fallback.",
+                }
+            ),
+            flush=True,
+        )
+        return
+
+    print(
+        json.dumps(
+            {
+                "event": "database.initialized",
+                "status": result.get("status", "UNKNOWN"),
+                "schema": result.get("schema"),
+            }
+        ),
+        flush=True,
+    )
 
 
 async def serve(host: str, port: int, log_level: str) -> None:
@@ -78,6 +108,7 @@ async def serve(host: str, port: int, log_level: str) -> None:
 
 def main() -> None:
     args = parse_args()
+    initialize_desktop_database()
     asyncio.run(serve(args.host, args.port, args.log_level))
 
 

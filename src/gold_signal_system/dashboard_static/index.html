@@ -1051,6 +1051,9 @@
       const votes = state.votes;
 
       document.getElementById("view-dashboard").innerHTML = `
+        ${state.summary?.data_status?.status === "ERROR"
+          ? card("Signal data unavailable", `<div class="muted">${escapeHtml(state.summary.data_status.message)}</div>`)
+          : ""}
         ${renderMarketSessions()}
         <div class="grid-2">
           ${card("Live Recommendation", table([
@@ -2154,16 +2157,27 @@
         `<div>Momentum: <strong>${escapeHtml(indicators?.momentum?.bias || "--")}</strong> (${Math.round(indicators?.momentum?.score || 0)}/100)</div>`,
         `<div>Volatility: <strong>${escapeHtml(indicators?.volatility_status || "--")}</strong> ATR ${escapeHtml(formatNumber(indicators?.atr))}</div>`,
         `<div>Structure: <strong>${escapeHtml(indicators?.structure_bias || "--")}</strong></div>`,
-        `<div>Session: <strong>${escapeHtml(indicators?.session_name || "--")}</strong></div>`,
+        `<div>Session: <strong>${escapeHtml(indicators?.session_name || indicators?.session || "--")}</strong></div>`,
         `<div>News: <strong>${escapeHtml(indicators?.news_status || "--")}</strong></div>`
       ].join("");
     }
 
     function renderSMCSummary(smc) {
       if (!smc) return "<div>No SMC data available</div>";
-      const fvgs = (smc.active_fvgs || []).map(f => `${f.timeframe} ${f.direction}`).join(" | ");
-      const sweeps = (smc.recent_sweeps || []).map(s => `${s.direction} at ${s.price.toFixed(2)}`).join(" | ");
-      const ifvgs = (smc.active_ifvgs || []).map(i => `${i.timeframe} ${i.direction}`).join(" | ");
+      const direction = item => item?.direction
+        || (typeof item?.is_bullish === "boolean" ? (item.is_bullish ? "BULLISH" : "BEARISH") : "--");
+      const fvgs = (smc.active_htf_fvgs || smc.active_fvgs || [])
+        .map(f => `${f.timeframe || "--"} ${direction(f)}`)
+        .join(" | ");
+      const sweeps = (smc.recent_sweeps || []).map(s => {
+        const level = s?.level || {};
+        const label = s?.direction || level.level_type || (s?.rejected ? "REJECTED" : "SWEEP");
+        return `${label} at ${formatPrice(s?.price ?? level.price)}`;
+      }).join(" | ");
+      const ifvgs = (smc.active_ifvgs || [])
+        .map(i => `${i.timeframe || "--"} ${direction(i)}`)
+        .join(" | ");
+      const drawOnLiquidity = smc.draw_on_liquidity ?? smc.dol;
       
       return [
         `<div>SMC Valid: <strong>${smc.smc_setup_valid ? '<span class="status-buy">YES</span>' : 'NO'}</strong></div>`,
@@ -2172,7 +2186,7 @@
         `<div>Active FVGs: <strong>${escapeHtml(fvgs || "None")}</strong></div>`,
         `<div>Recent Sweeps: <strong>${escapeHtml(sweeps || "None")}</strong></div>`,
         `<div>Active IFVGs: <strong>${escapeHtml(ifvgs || "None")}</strong></div>`,
-        `<div>Draw on Liquidity: <strong>${smc.draw_on_liquidity ? smc.draw_on_liquidity.toFixed(2) : "--"}</strong></div>`
+        `<div>Draw on Liquidity: <strong>${formatPrice(drawOnLiquidity)}</strong></div>`
       ].join("");
     }
 

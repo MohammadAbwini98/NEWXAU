@@ -25,11 +25,12 @@ describe("backend request bridge policy", () => {
 
   it("prevents implicit repository env secrets while preserving explicit desktop values", () => {
     const environment = resolveDesktopSecretEnvironment(
-      { POSTGRES_DSN: "stored-postgres" },
+      { POSTGRES_DSN: "stored-postgres", POSTGRES_SCHEMA: "newxau" },
       { CAPITAL_API_KEY: "explicit-capital" }
     );
 
     expect(environment.POSTGRES_DSN).toBe("stored-postgres");
+    expect(environment.POSTGRES_SCHEMA).toBe("newxau");
     expect(environment.CAPITAL_API_KEY).toBe("explicit-capital");
     expect(environment.CAPITALCOM_PASSWORD).toBe("");
     expect(environment.TELEGRAM_BOT_TOKEN).toBe("");
