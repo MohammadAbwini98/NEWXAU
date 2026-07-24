@@ -68,6 +68,18 @@ export function resolveDesktopDataProvider(environment: NodeJS.ProcessEnv): stri
   return hasApiKey && hasIdentifier && hasPassword ? "capitalcom" : "synthetic";
 }
 
+export function resolveDesktopLivePriceStream(
+  environment: NodeJS.ProcessEnv,
+  dataProvider: string
+): string {
+  const configured = environment.ENABLE_LIVE_PRICE_STREAM?.trim();
+  if (configured) return configured;
+
+  return ["capitalcom", "capital", "capital.com"].includes(dataProvider.trim().toLowerCase())
+    ? "1"
+    : "0";
+}
+
 export function assertBackendRequestAllowed(path: string, method: string): void {
   if (!path.startsWith("/") || path.startsWith("//")) throw new Error("Invalid backend path.");
   const normalizedMethod = method.toUpperCase();
@@ -168,6 +180,7 @@ export class BackendProcessManager extends EventEmitter {
       ...secretEnvironment,
       ...isolatedSecretEnvironment
     };
+    const dataProvider = resolveDesktopDataProvider(backendEnvironment);
     await mkdir(this.paths.logsRoot, { recursive: true });
     await mkdir(this.paths.runtimeRoot, { recursive: true });
     this.setState({
@@ -188,7 +201,11 @@ export class BackendProcessManager extends EventEmitter {
         windowsHide: true,
         env: {
           ...backendEnvironment,
-          DATA_PROVIDER: resolveDesktopDataProvider(backendEnvironment),
+          DATA_PROVIDER: dataProvider,
+          ENABLE_LIVE_PRICE_STREAM: resolveDesktopLivePriceStream(
+            backendEnvironment,
+            dataProvider
+          ),
           PYTHONDONTWRITEBYTECODE: "1",
           PYTHONUNBUFFERED: "1",
           NEWXAU_DESKTOP_TOKEN: this.token,

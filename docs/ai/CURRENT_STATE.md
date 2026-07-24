@@ -27,6 +27,9 @@ Last updated: 2026-07-24
   Signal History, Models, Indicators, Risk, Backtesting, Optimization, Replay,
   News Intelligence, System Health, and Settings.
 - Storage supports PostgreSQL and in-memory fallback.
+- PostgreSQL startup attempts are bounded for both primary storage and News
+  Intelligence. An unavailable configured database falls back to in-memory
+  instead of indefinitely blocking desktop readiness.
 - Capital.com execution integration exists and keeps demo/safety guard rails.
 - Capital.com execution forces broker account selection for `CAPITAL_EXECUTION_ACCOUNT_NAME` immediately before market order submission and validates the selected account.
 - Execution Orders can be listed, inspected, filtered by market session and requested date/time range, summarized with dynamic filtered statistics, and exported with full dashboard payload JSON.
@@ -34,8 +37,15 @@ Last updated: 2026-07-24
 - Control Unit and signal context use the canonical Jordan-time XAUUSD sessions: `DAILY_BREAK`, `ASIA_LOW`, `LONDON_ACTIVE`, `US_OVERLAP`, and `NY_ACTIVE`. `DAILY_BREAK` is always non-trading.
 - The main dashboard shows the canonical market-session schedule with Jordan open/close times, the active session, and each session's current Control Unit enabled/disabled state.
 - News Intelligence modules and migrations exist as an optional XAUUSD context/risk layer.
-- Runtime and dashboard defaults now use XAUUSD. External Capital/Kronos env imports require explicit `CAPITAL_ENV_FILE`; no hardcoded machine-local env file is loaded implicitly.
+- Runtime and dashboard defaults use the internal instrument `XAUUSD`; the
+  default Capital.com market epic is `GOLD`. Explicit broker-symbol
+  environment overrides remain authoritative. External Capital/Kronos env
+  imports require explicit `CAPITAL_ENV_FILE`; no hardcoded machine-local env
+  file is loaded implicitly.
 - Capital.com live price streaming sends provider `ping` keepalives every `CAPITALCOM_STREAM_PING_SECONDS` seconds, defaulting to 540 seconds, and reports `RECONNECTING` when the provider stream closes or is interrupted.
+- Electron refreshes prices on the backend's `price.tick` event. With a
+  non-live provider it labels the latest signal price as a reference rather
+  than presenting it as a live quote.
 - Capital.com candle polling invalidates expired REST session tokens on HTTP 401, authenticates again, and retries the candle request once so long-running background signal cycles can recover without an API restart.
 - `/api/system/health` reports background cycle worker state, including last start/success/error timestamps, last generated signal time/session, consecutive worker errors, and stale-worker detection.
 - Every signal cycle reports scored candle quality, freshness, integrity counts, spread/provider/aggregation status, blocking reasons, and stage latency. These fields are exposed by the cycle API and persisted inside signal snapshot risk-filter JSON.

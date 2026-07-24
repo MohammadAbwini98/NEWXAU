@@ -126,6 +126,9 @@ class RuntimeConfig:
     model_artifacts_dir: str = field(default_factory=lambda: _resource_path_env("MODEL_ARTIFACTS_DIR", "models"))
     postgres_dsn: str | None = field(default_factory=lambda: os.getenv("POSTGRES_DSN"))
     postgres_schema: str | None = field(default_factory=lambda: _env_first("POSTGRES_SCHEMA", "TRADING_DATABASE_SCHEMA"))
+    postgres_connect_timeout_seconds: int = field(
+        default_factory=lambda: max(int(os.getenv("POSTGRES_CONNECT_TIMEOUT_SECONDS", "5")), 1)
+    )
     live_cycle_interval_seconds: int = field(default_factory=lambda: int(os.getenv("LIVE_CYCLE_INTERVAL_SECONDS", "900")))
     live_candle_lookback: int = field(default_factory=lambda: int(os.getenv("LIVE_CANDLE_LOOKBACK", "900")))
     live_cycle_retry_attempts: int = field(default_factory=lambda: int(os.getenv("LIVE_CYCLE_RETRY_ATTEMPTS", "3")))
@@ -211,8 +214,8 @@ class RuntimeConfig:
     capitalcom_identifier: str | None = field(default_factory=lambda: _env_first("CAPITALCOM_IDENTIFIER", "CAPITAL_IDENTIFIER", "CAPITAL_EMAIL"))
     capitalcom_password: str | None = field(default_factory=lambda: _env_first("CAPITALCOM_PASSWORD", "CAPITAL_PASSWORD"))
     capitalcom_epic: str = field(
-        default_factory=lambda: _env_first("CAPITALCOM_EPIC", "CAPITAL_DEFAULT_EPIC", "TRADING_PROVIDER_SYMBOL", default="XAUUSD")
-        or "XAUUSD"
+        default_factory=lambda: _env_first("CAPITALCOM_EPIC", "CAPITAL_DEFAULT_EPIC", "TRADING_PROVIDER_SYMBOL", default="GOLD")
+        or "GOLD"
     )
     capitalcom_price_side: str = field(default_factory=lambda: _env_first("CAPITALCOM_PRICE_SIDE", "CAPITAL_DEFAULT_PRICE_SIDE", default="mid") or "mid")
     capitalcom_use_encrypted_password: bool = field(default_factory=lambda: _env_flag("CAPITAL_USE_ENCRYPTED_PASSWORD", False))

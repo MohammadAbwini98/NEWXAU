@@ -1155,7 +1155,12 @@ class InMemoryStorage:
 class PostgreSQLStorage(InMemoryStorage):
     """PostgreSQL-backed persistence with in-memory mirrors for API convenience."""
 
-    def __init__(self, dsn: str, schema: str | None = None) -> None:
+    def __init__(
+        self,
+        dsn: str,
+        schema: str | None = None,
+        connect_timeout_seconds: int = 5,
+    ) -> None:
         super().__init__()
         try:
             import psycopg
@@ -1170,7 +1175,12 @@ class PostgreSQLStorage(InMemoryStorage):
         self._schema = schema
         from psycopg.rows import dict_row as _dict_row
         self._dict_row = _dict_row
-        self._conn = self._psycopg.connect(self._dsn, autocommit=True, row_factory=self._dict_row)
+        self._conn = self._psycopg.connect(
+            self._dsn,
+            autocommit=True,
+            row_factory=self._dict_row,
+            connect_timeout=max(int(connect_timeout_seconds), 1),
+        )
         self._configure_schema()
 
     def _configure_schema(self) -> None:

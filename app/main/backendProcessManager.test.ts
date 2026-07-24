@@ -3,6 +3,7 @@ import {
   BackendProcessManager,
   assertBackendRequestAllowed,
   resolveDesktopDataProvider,
+  resolveDesktopLivePriceStream,
   resolveDesktopSecretEnvironment
 } from "./backendProcessManager";
 import type { AppPaths } from "./appPaths";
@@ -57,6 +58,15 @@ describe("backend request bridge policy", () => {
       DATA_PROVIDER: "csv",
       CANDLE_CSV_PATH: "C:/data/candles.csv"
     })).toBe("csv");
+  });
+
+  it("starts the Capital.com price stream only for Capital.com providers by default", () => {
+    expect(resolveDesktopLivePriceStream({}, "synthetic")).toBe("0");
+    expect(resolveDesktopLivePriceStream({}, "csv")).toBe("0");
+    expect(resolveDesktopLivePriceStream({}, "capitalcom")).toBe("1");
+    expect(resolveDesktopLivePriceStream({
+      ENABLE_LIVE_PRICE_STREAM: "1"
+    }, "synthetic")).toBe("1");
   });
 
   it("reports a blocking failure without spawning when no verified runtime is available", async () => {

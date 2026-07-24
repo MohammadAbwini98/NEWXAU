@@ -22,7 +22,12 @@ logger = logging.getLogger(__name__)
 class NewsIntelligenceRepository:
     """Repository for News Intelligence records with PostgreSQL and in-memory fallback."""
 
-    def __init__(self, dsn: str | None = None, schema: str | None = None) -> None:
+    def __init__(
+        self,
+        dsn: str | None = None,
+        schema: str | None = None,
+        connect_timeout_seconds: int = 5,
+    ) -> None:
         self._dsn = dsn
         self._schema = schema
         self._in_memory = not bool(dsn)
@@ -42,7 +47,12 @@ class NewsIntelligenceRepository:
 
                 self._psycopg = psycopg
                 self._sql = sql
-                self._conn = psycopg.connect(self._dsn, autocommit=True, row_factory=dict_row)
+                self._conn = psycopg.connect(
+                    self._dsn,
+                    autocommit=True,
+                    row_factory=dict_row,
+                    connect_timeout=max(int(connect_timeout_seconds), 1),
+                )
                 if self._schema:
                     if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", self._schema):
                         raise ValueError(f"Invalid PostgreSQL schema name: {self._schema}")

@@ -657,6 +657,20 @@ async def get_latest_signal() -> dict[str, Any]:
 
 @app.get("/api/price/latest")
 async def get_latest_price() -> dict[str, Any]:
+    provider_name = (runtime.data_provider or "").strip().lower()
+    is_capital_provider = provider_name in {"capitalcom", "capital", "capital.com"}
+    if not is_capital_provider and latest_price_tick is None:
+        return {
+            "status": "REFERENCE_ONLY",
+            "instrument": runtime.instrument,
+            "epic": runtime.capitalcom_epic,
+            "source": f"{provider_name or 'unknown'}.candles",
+            "stream": latest_price_stream_status,
+            "message": (
+                "This data provider does not supply a live websocket quote. "
+                "The desktop shows the latest signal price as a reference only."
+            ),
+        }
     if latest_price_stream_status.get("status") == "MARKET_CLOSED":
         return {
             "status": "MARKET_CLOSED",

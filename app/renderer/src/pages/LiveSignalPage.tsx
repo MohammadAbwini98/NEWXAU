@@ -3,6 +3,8 @@ import { useCallback, useEffect } from "react";
 import { EmptyState } from "../components/EmptyState";
 import { MetricCard } from "../components/MetricCard";
 import { api } from "../data/apiClient";
+import { isPriceTickEvent } from "../data/eventClient";
+import { resolveDisplayPrice } from "../data/priceDisplay";
 import { useRemoteResource } from "../hooks/useRemoteResource";
 import { useBackend } from "../state/BackendContext";
 
@@ -32,19 +34,19 @@ export function LiveSignalPage() {
       void signal.refresh();
       void risk.refresh();
     }
-    if (lastEvent?.event === "price.updated") void price.refresh();
+    if (lastEvent && isPriceTickEvent(lastEvent.event)) void price.refresh();
   }, [lastEvent, signal.refresh, risk.refresh, price.refresh]);
 
   const payload = signal.data && typeof signal.data === "object" ? signal.data : {};
   const direction = String(payload.signal ?? payload.direction ?? "WAITING");
   const confidence = Number(payload.confidence ?? 0);
-  const currentPrice = Number(price.data?.price ?? price.data?.bid ?? 0);
+  const displayPrice = resolveDisplayPrice(price.data, payload);
   return (
     <div className="page-stack">
       <section className="metric-grid">
         <MetricCard label="Direction" value={direction} detail={String(payload.status ?? "No active recommendation")} icon={Crosshair} tone={direction === "BUY" ? "positive" : direction === "SELL" ? "danger" : "neutral"} loading={signal.loading} />
         <MetricCard label="Confidence" value={confidence ? `${(confidence * 100).toFixed(1)}%` : "—"} detail="Final ensemble confidence" icon={Gauge} tone="gold" loading={signal.loading} />
-        <MetricCard label="Market price" value={currentPrice ? currentPrice.toFixed(2) : "—"} detail={price.data?.source ?? "Price stream"} icon={Activity} loading={price.loading} />
+        <MetricCard label="Market price" value={displayPrice.value === undefined ? "—" : displayPrice.value.toFixed(2)} detail={displayPrice.detail} icon={Activity} loading={price.loading} />
         <MetricCard label="Risk state" value={String(risk.data?.status ?? risk.data?.risk_status ?? "—")} detail="Pre-execution risk gate" icon={ShieldAlert} tone="warning" loading={risk.loading} />
       </section>
       <section className="content-grid wide-left">

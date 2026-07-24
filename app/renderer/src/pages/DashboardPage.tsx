@@ -3,6 +3,8 @@ import { useCallback, useEffect } from "react";
 import { EmptyState } from "../components/EmptyState";
 import { MetricCard } from "../components/MetricCard";
 import { api } from "../data/apiClient";
+import { isPriceTickEvent } from "../data/eventClient";
+import { resolveDisplayPrice } from "../data/priceDisplay";
 import { useRemoteResource } from "../hooks/useRemoteResource";
 import { useBackend } from "../state/BackendContext";
 
@@ -31,17 +33,13 @@ export function DashboardPage() {
   useEffect(() => {
     if (!lastEvent) return;
     if (lastEvent.event === "signal.updated") void summary.refresh();
-    if (lastEvent.event === "price.updated") void price.refresh();
+    if (isPriceTickEvent(lastEvent.event)) void price.refresh();
     if (lastEvent.event === "execution.updated") void execution.refresh();
     if (lastEvent.event.startsWith("market.")) void market.refresh();
   }, [lastEvent, summary.refresh, price.refresh, execution.refresh, market.refresh]);
 
   const currentSignal = summary.data?.current_signal;
-  const currentPrice = price.data?.price ?? (
-    price.data?.bid !== undefined && price.data?.ask !== undefined
-      ? (price.data.bid + price.data.ask) / 2
-      : undefined
-  );
+  const displayPrice = resolveDisplayPrice(price.data, currentSignal);
   const executionSafe = execution.data?.enabled !== true;
   const marketState = String(market.data?.market_state ?? market.data?.status ?? "Unknown");
 
@@ -88,8 +86,8 @@ export function DashboardPage() {
       <section className="metric-grid">
         <MetricCard
           label="XAUUSD"
-          value={currentPrice === undefined ? "—" : currentPrice.toFixed(2)}
-          detail={price.data?.source ?? price.data?.message ?? "Latest market price"}
+          value={displayPrice.value === undefined ? "—" : displayPrice.value.toFixed(2)}
+          detail={displayPrice.detail}
           icon={CircleDollarSign}
           tone="gold"
           loading={price.loading}

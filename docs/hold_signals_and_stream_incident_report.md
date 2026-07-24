@@ -3,6 +3,11 @@
 Date: 2026-06-09
 Scope: Why recent signals are all HOLD, and why websocket/live price appears closed or stale.
 
+Resolution note (2026-07-24): the built-in Capital.com epic now defaults to
+`GOLD` while the internal strategy/display instrument remains `XAUUSD`.
+Explicit `CAPITALCOM_EPIC`, `CAPITAL_DEFAULT_EPIC`, or
+`TRADING_PROVIDER_SYMBOL` overrides continue to take precedence.
+
 ## Executive Summary
 
 Two primary failures were identified:

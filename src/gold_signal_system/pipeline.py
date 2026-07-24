@@ -54,7 +54,11 @@ class GoldSignalSystem:
         self.storage_backend = "in_memory"
         if self.runtime.postgres_dsn:
             try:
-                self.storage = PostgreSQLStorage(self.runtime.postgres_dsn, schema=self.runtime.postgres_schema)
+                self.storage = PostgreSQLStorage(
+                    self.runtime.postgres_dsn,
+                    schema=self.runtime.postgres_schema,
+                    connect_timeout_seconds=self.runtime.postgres_connect_timeout_seconds,
+                )
                 self.storage_backend = "postgresql"
             except Exception as exc:
                 self.storage = InMemoryStorage()
@@ -149,7 +153,9 @@ class GoldSignalSystem:
             min_observations_for_reweight=self.runtime.min_observations_for_reweight
         )
         self.news_repository = NewsIntelligenceRepository(
-            dsn=self.runtime.postgres_dsn, schema=self.runtime.postgres_schema
+            dsn=self.runtime.postgres_dsn,
+            schema=self.runtime.postgres_schema,
+            connect_timeout_seconds=self.runtime.postgres_connect_timeout_seconds,
         )
         self.news_aggregator = NewsStateAggregator(repository=self.news_repository, config=self.runtime)
         self.news_intelligence_service = NewsIntelligenceService(

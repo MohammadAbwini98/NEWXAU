@@ -747,3 +747,45 @@ Live Capital.com prices still require complete encrypted credentials in
 Desktop Settings or an explicitly configured provider environment. The
 credential-free fallback is synthetic and must not be represented as live
 market data.
+
+## 2026-07-24 - Restore Desktop XAUUSD Price Data
+
+### Problem
+
+The connected desktop showed a dash for XAUUSD. Capital.com candle requests
+used `/prices/XAUUSD`, which returned HTTP 404, and the renderer listened for
+`price.updated` even though the backend publishes `price.tick`. A configured
+but unreachable PostgreSQL DSN could also delay backend readiness for several
+minutes.
+
+### Changes
+
+- Kept the internal instrument as `XAUUSD` and corrected the default
+  Capital.com epic to `GOLD`.
+- Updated renderer price refreshes to consume `price.tick`.
+- Added a safe display resolver that prefers live price/bid-ask data and, only
+  for non-live providers, shows the signal price with an explicit
+  reference-only label.
+- Disabled the Capital.com websocket by default for synthetic/CSV providers.
+- Added a `REFERENCE_ONLY` price response for non-live providers without
+  leaking a synthetic reference into the execution price path.
+- Bounded PostgreSQL startup connections for primary storage and News
+  Intelligence, preserving in-memory fallback.
+- Corrected a Windows path-separator assertion in the dashboard entrypoint
+  test.
+
+### Verification
+
+- 53 focused Python execution, Control Unit, stream, configuration, startup,
+  and dashboard tests passed.
+- 21 Electron tests passed before the broker-epic correction; targeted price,
+  event, and backend-manager tests passed after the renderer changes.
+- TypeScript typecheck and production Electron build passed.
+- Node 22.12 produced a fresh unpacked package.
+- The rebuilt app reached backend ready with the existing encrypted desktop
+  profile and visually displayed a numeric XAUUSD quote (`4947.98`) while no
+  current signal existed, confirming the value came from the live broker
+  stream rather than the signal-reference fallback.
+- Execution eligibility was not broadened. Execution and auto-execution remain
+  disabled by default, demo-only remains enabled, and no broker order request
+  occurred.

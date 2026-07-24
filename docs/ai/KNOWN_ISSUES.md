@@ -7,6 +7,10 @@ Last updated: 2026-07-24
 - Local `.env` values can change test behavior when tests assume defaults. `tests/test_capital_execution.py` and `tests/test_execution_control.py` now set `CAPITAL_EXECUTION_ACCOUNT_NAME=NEWXAU` internally for their fake clients, but new tests should continue isolating broker/account env values.
 - Broad pytest runs can be slow; run focused tests first for changed modules. A combined run including `tests/test_pipeline.py` timed out locally after 304 seconds on 2026-06-30; `tests --ignore=tests/test_pipeline.py` passed in 127 seconds and the targeted pipeline recommendation-shape test passed.
 - Capital.com execution, candle/history, AI, and news integrations depend on network/session/config state and should be mocked in unit tests. Candle polling recovers once from an HTTP 401 by re-authenticating, but persistent authentication or broker failures still surface through background-cycle health.
+- A configured but unreachable PostgreSQL DSN adds two bounded connection
+  attempts during startup (primary storage and News Intelligence) before both
+  fall back to memory. The default bound is five seconds per client and can be
+  changed with `POSTGRES_CONNECT_TIMEOUT_SECONDS`.
 - PostgreSQL Control Unit decision history requires `db/010_execution_control.sql`; run `python scripts/init_db.py` after deploying this change.
 - Capital.com streaming can still reconnect when broker account/session changes are made, because the provider documents that streaming can fall off after `PUT /session`. The stream worker now backs off and reconnects, but long-running demo/live sessions should still be watched in the dashboard.
 - Live price ticks and signal candle ingestion are separate paths. Capital.com websocket ticks may stay fresh while the background signal cycle stops refreshing the in-process candle store. `/api/system/health` exposes `background_cycle`; investigate if it becomes `STALE`, `ERROR`, or `STOPPED`, or if `last_success_at` stops advancing. The REST candle provider now recovers from one expired-session 401, but other repeated failures still require operator attention.

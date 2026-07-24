@@ -140,9 +140,26 @@ verification is stable.
 
 **Reason:** A hardcoded machine-local path can silently import credentials or stale instrument/database settings and makes runtime behavior depend on one developer workstation.
 
-**Impact:** Operators who relied on the old implicit external env path must set `CAPITAL_ENV_FILE` explicitly. Built-in defaults now use XAUUSD for `TRADING_INSTRUMENT` and `CAPITALCOM_EPIC`.
+**Impact:** Operators who relied on the old implicit external env path must set `CAPITAL_ENV_FILE` explicitly. The internal `TRADING_INSTRUMENT` remains XAUUSD. The Capital.com epic was corrected separately on 2026-07-24.
 
 **Related files:** `src/gold_signal_system/config.py`, `README.md`, `tests/test_config_defaults.py`
+
+## 2026-07-24 - Separate XAUUSD From The Capital.com GOLD Epic
+
+**Decision:** Keep `XAUUSD` as the internal strategy/display instrument and
+default the Capital.com market epic to `GOLD`.
+
+**Reason:** Capital.com identifies Gold Spot with the epic `GOLD`; using
+`XAUUSD` produced REST 404 responses and websocket subscription errors.
+
+**Impact:** Candle polling and live price streaming target the broker's valid
+market identifier while recommendations continue to use XAUUSD. Explicit
+`CAPITALCOM_EPIC`, `CAPITAL_DEFAULT_EPIC`, and `TRADING_PROVIDER_SYMBOL`
+overrides still take precedence. Execution remains disabled by default,
+auto-execution remains off, and demo-only enforcement is unchanged.
+
+**Related files:** `src/gold_signal_system/config.py`,
+`tests/test_config_defaults.py`, `docs/capital_execution.md`
 
 ## 2026-06-30 - Jordan Time Is Canonical For XAUUSD Sessions
 

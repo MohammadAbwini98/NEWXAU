@@ -54,7 +54,7 @@ class DashboardStartupTests(unittest.IsolatedAsyncioTestCase):
     def test_dashboard_route_is_project_entrypoint(self) -> None:
         response = api.dashboard()
 
-        self.assertTrue(str(response.path).endswith("src/gold_signal_system/dashboard_static/index.html"))
+        self.assertTrue(response.path.as_posix().endswith("src/gold_signal_system/dashboard_static/index.html"))
 
     def test_sidebar_items_are_actionable_buttons(self) -> None:
         dashboard_path = os.path.join(ROOT, "src", "gold_signal_system", "dashboard_static", "index.html")
@@ -112,9 +112,11 @@ class DashboardStartupTests(unittest.IsolatedAsyncioTestCase):
     async def test_latest_price_endpoint_reports_stream_state(self) -> None:
         price = await api.get_latest_price()
 
-        self.assertEqual(price["status"], "DISABLED")
+        self.assertEqual(price["status"], "REFERENCE_ONLY")
         self.assertEqual(price["instrument"], "XAUUSD")
-        self.assertEqual(price["source"], "capital.com.websocket")
+        self.assertEqual(price["source"], "synthetic.candles")
+        self.assertNotIn("price", price)
+        self.assertIn("reference only", price["message"])
 
     async def test_dashboard_summary_seeds_full_signal_stack(self) -> None:
         self.assertIsNone(api.system.storage.latest_recommendation())

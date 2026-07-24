@@ -12,6 +12,10 @@ export interface EventClientStatus {
   message: string;
 }
 
+export function isPriceTickEvent(eventName: string): boolean {
+  return eventName === "price.tick";
+}
+
 type EventListener = (event: NewxauEvent) => void;
 type StatusListener = (status: EventClientStatus) => void;
 

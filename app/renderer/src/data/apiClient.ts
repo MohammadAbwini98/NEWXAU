@@ -11,7 +11,13 @@ export class ApiError extends Error {
 }
 
 export interface DashboardSummary {
-  current_signal: { signal: string; status: string; confidence: number } | null;
+  current_signal: {
+    signal: string;
+    status: string;
+    confidence: number;
+    current_price?: number | null;
+    entry_price?: number | null;
+  } | null;
   model_consensus: Record<string, unknown> | null;
   risk_quality: string | null;
   storage_backend: string;

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { EventClient, type NewxauEvent } from "./eventClient";
+import { EventClient, isPriceTickEvent, type NewxauEvent } from "./eventClient";
 
 class FakeWebSocket {
   static instances: FakeWebSocket[] = [];
@@ -28,6 +28,11 @@ class FakeWebSocket {
 }
 
 describe("EventClient", () => {
+  it("matches the backend price tick event contract", () => {
+    expect(isPriceTickEvent("price.tick")).toBe(true);
+    expect(isPriceTickEvent("price.updated")).toBe(false);
+  });
+
   beforeEach(() => {
     FakeWebSocket.instances = [];
     vi.stubGlobal("WebSocket", FakeWebSocket);
